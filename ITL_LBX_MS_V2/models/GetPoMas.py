@@ -17,7 +17,16 @@ class GetPo(models.Model):
     _rec_name = 'order_number'
 
     order_number = fields.Char(string='Order Number', required=True)
+
+
     line_ids = fields.One2many('get_po_mas_lines', 'header_table', string='Order Lines')
+    line_ids_main_lable = fields.One2many('get_po_mas_lines_main_lable', 'header_table', string='Order Lines Main Lable')
+    line_ids_care_lable = fields.One2many('get_po_mas_lines_care_lable', 'header_table', string='Order Lines Care Lable')
+    line_ids_price_tkt = fields.One2many('get_po_mas_lines_price_tkt', 'header_table', string='Order Lines Price tkt')
+
+
+
+
     pdm = fields.Selection([('PDM300', 'PDM300'), ('PSI100', 'PSI100')],
                               string='System', default='PDM300')
     ChoosePo = fields.Selection([('RFID', 'RFID'), ('CARE LABELS', 'CARE LABELS'), ('PRICE TKT / BARCODE STK', 'PRICE TKT / BARCODE STK'), ('MAIN LABELS', 'MAIN LABELS')],

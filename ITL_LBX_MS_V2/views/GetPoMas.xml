@@ -63,8 +63,401 @@
                     </group>
                     <!-- Notebook for displaying different tabs -->
                     <notebook>
-                        <page string="Purchase Order" name="Purchase_order_new">
+                        <page string="Purchase Order Rfid" name="Purchase_order_rfid">
                             <field name="line_ids">
+                                <tree create="0" editable="0">
+                                    <field name="line_number" optional="show"/>
+                                    <field name="po_number" optional="show"/>
+                                    <field name="POwithLine" optional="show"/>
+                                    <field name="purchase_order_version" optional="hide"/>
+                                    <field name="po_date" optional="hide"/>
+                                    <field name="last_revision_date" optional="hide"/>
+                                    <field name="currency" optional="hide"/>
+
+                                    <field name="Customer_name" optional="hide"/>
+                                    <field name="CustomerID" optional="hide"/>
+                                    <field name="AddressID" optional="hide"/>
+                                    <field name="DeliveryAddress"/>
+
+
+                                    <field name="consignee_name" optional="hide"/>
+                                    <field name="consignee_name2" optional="hide"/>
+                                    <field name="consignee_name3" optional="hide"/>
+                                    <field name="consignee_add1" optional="hide"/>
+                                    <field name="consignee_add2" optional="hide"/>
+                                    <field name="contact_person" optional="hide"/>
+                                    <field name="contact_tel" optional="hide"/>
+                                    <field name="contact_email" optional="hide"/>
+                                    <field name="supplier_name" optional="hide"/>
+                                    <field name="supplier_add1" optional="hide"/>
+                                    <field name="supplier_add2" optional="hide"/>
+                                    <field name="supplier_tel" optional="hide"/>
+                                    <field name="supplier_fax" optional="hide"/>
+                                    <field name="bill_to_name" optional="hide"/>
+                                    <field name="bill_to_name2" optional="hide"/>
+                                    <field name="bill_to_name3" optional="hide"/>
+                                    <field name="bill_to_add1" optional="hide"/>
+                                    <field name="bill_to_add2" optional="hide"/>
+                                    <field name="notify_add1" optional="hide"/>
+                                    <field name="notify_add2" optional="hide"/>
+                                    <field name="season" optional="hide"/>
+
+                                    <field name="cus_field1" optional="hide"/>
+                                    <field name="end_buyer_account" optional="hide"/>
+                                    <field name="end_buyer" optional="hide"/>
+                                    <field name="inco_terms" optional="hide"/>
+                                    <field name="inco_term_desc" optional="hide"/>
+                                    <field name="payment_mode" optional="hide"/>
+                                    <field name="delivery_address_code" optional="hide"/>
+                                    <field name="delivery_address" optional="hide"/>
+                                    <field name="header_text" optional="hide"/>
+                                    <field name="header_note" optional="hide"/>
+                                    <field name="order_mode" optional="hide"/>
+                                    <field name="company_code" optional="hide"/>
+                                    <field name="initial_release_date" optional="hide"/>
+                                    <field name="initial_release_time" optional="hide"/>
+                                    <field name="final_release_date" optional="hide"/>
+
+                                    <field name="purchase_order_item" optional="hide"/>
+                                    <field name="material_code" optional="hide"/>
+                                    <field name="vendor_material" optional="hide"/>
+                                    <field name="color_code" optional="hide"/>
+                                    <field name="color_code_2" optional="show"/>
+                                    <field name="ref_material" optional="hide"/>
+                                    <field name="ref_material_2" optional="hide"/>
+                                    <field name="item_text" optional="hide"/>
+                                    <field name="mat_po_text" optional="hide"/>
+                                    <field name="page_format" optional="hide"/>
+                                    <field name="material_description" optional="hide"/>
+                                    <field name="sales_order_line" optional="hide"/>
+                                    <field name="sales_order_schedule_line" optional="hide"/>
+                                    <field name="sales_order_item" optional="hide"/>
+                                    <field name="SoRefLv" optional="hide"/>
+                                    <field name="delivery_date" optional="hide"/>
+                                    <field name="order_quantity" optional="hide"/>
+                                    <field name="size_quantity" optional="hide"/>
+                                    <field name="uom" optional="hide"/>
+                                    <field name="net_price" optional="hide"/>
+                                    <field name="discount_percentage" optional="hide"/>
+                                    <field name="discount_value" optional="hide"/>
+                                    <field name="net_value" optional="hide"/>
+                                    <field name="text" optional="hide"/>
+                                    <field name="product_type" optional="hide"/>
+                                    <field name="gender" optional="hide"/>
+                                    <field name="order_reason" optional="hide"/>
+                                    <field name="garment_type" optional="hide"/>
+                                    <field name="ptlcode" optional="hide"/>
+                                    <field name="ship_mode" optional="hide"/>
+                                    <field name="sales_order_season" optional="hide"/>
+                                    <field name="buy_year" optional="hide"/>
+                                    <field name="brand" optional="hide"/>
+                                    <field name="department_code" optional="hide"/>
+                                    <field name="emotional_space" optional="hide"/>
+                                    <field name="planning_group" optional="hide"/>
+                                    <field name="cpo" optional="hide"/>
+                                    <field name="customer_style" optional="show"/>
+                                    <field name="customer_style_desc" optional="hide"/>
+                                    <field name="size_range" optional="hide"/>
+                                    <field name="grid_value" optional="show"/>
+                                    <field name="size_lv" optional="hide"/>
+                                    <field name="ex_factory_date" optional="hide"/>
+                                    <field name="additional_sku_no" optional="hide"/>
+                                    <field name="fg_size" optional="hide"/>
+                                    <field name="additional_field_1" optional="hide"/>
+                                    <field name="additional_field_2" optional="hide"/>
+                                    <field name="ProductRef" optional="hide"/>
+                                    <field name="ChoosePo" optional="hide"/>
+                                    <field name="DelDate" optional="hide"/>
+                                    <field name="date_of_manufacture_last_four_letters" optional="hide"/>
+                                    <field name="vsd" optional="hide"/>
+                                    <field name="vendor_id" optional="hide"/>
+                                    <field name="Status" optional="hide"/>
+                                    <field name="RnNumber" optional="hide"/>
+                                    <field name="CaNumber" optional="hide"/>
+                                    <field name="ChainID_id" optional="hide"/>
+                                    <field name="color_desc" optional="hide"/>
+                                    <field name="Collection" optional="hide"/>
+                                    <field name="silhouette" optional="hide"/>
+                                    <field name="ItlCode" optional="hide"/>
+                                    <field name="Coo" optional="hide"/>
+                                    <field name="season" optional="hide"/>
+
+                                    <field name="additional_ins" optional="hide"/>
+                                    <field name="care_instruction_set_code" optional="hide"/>
+
+                                    <field name="sku" optional="show"/>
+                                    <field name="article_num" optional="show"/>
+                                    <field name="size_id" optional="show"/>
+                                    <field name="retail_usd" optional="show"/>
+                                    <field name="retail_cad" optional="show"/>
+                                    <field name="retail_gbp" optional="show"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Purchase Order Main Lable" name="Purchase_order_main_lable">
+                            <field name="line_ids_main_lable">
+                                <tree create="0" editable="0">
+                                    <field name="line_number" optional="show"/>
+                                    <field name="po_number" optional="show"/>
+                                    <field name="POwithLine" optional="show"/>
+                                    <field name="purchase_order_version" optional="hide"/>
+                                    <field name="po_date" optional="hide"/>
+                                    <field name="last_revision_date" optional="hide"/>
+                                    <field name="currency" optional="hide"/>
+
+                                    <field name="Customer_name" optional="hide"/>
+                                    <field name="CustomerID" optional="hide"/>
+                                    <field name="AddressID" optional="hide"/>
+                                    <field name="DeliveryAddress"/>
+
+
+                                    <field name="consignee_name" optional="hide"/>
+                                    <field name="consignee_name2" optional="hide"/>
+                                    <field name="consignee_name3" optional="hide"/>
+                                    <field name="consignee_add1" optional="hide"/>
+                                    <field name="consignee_add2" optional="hide"/>
+                                    <field name="contact_person" optional="hide"/>
+                                    <field name="contact_tel" optional="hide"/>
+                                    <field name="contact_email" optional="hide"/>
+                                    <field name="supplier_name" optional="hide"/>
+                                    <field name="supplier_add1" optional="hide"/>
+                                    <field name="supplier_add2" optional="hide"/>
+                                    <field name="supplier_tel" optional="hide"/>
+                                    <field name="supplier_fax" optional="hide"/>
+                                    <field name="bill_to_name" optional="hide"/>
+                                    <field name="bill_to_name2" optional="hide"/>
+                                    <field name="bill_to_name3" optional="hide"/>
+                                    <field name="bill_to_add1" optional="hide"/>
+                                    <field name="bill_to_add2" optional="hide"/>
+                                    <field name="notify_add1" optional="hide"/>
+                                    <field name="notify_add2" optional="hide"/>
+                                    <field name="season" optional="hide"/>
+
+                                    <field name="cus_field1" optional="hide"/>
+                                    <field name="end_buyer_account" optional="hide"/>
+                                    <field name="end_buyer" optional="hide"/>
+                                    <field name="inco_terms" optional="hide"/>
+                                    <field name="inco_term_desc" optional="hide"/>
+                                    <field name="payment_mode" optional="hide"/>
+                                    <field name="delivery_address_code" optional="hide"/>
+                                    <field name="delivery_address" optional="hide"/>
+                                    <field name="header_text" optional="hide"/>
+                                    <field name="header_note" optional="hide"/>
+                                    <field name="order_mode" optional="hide"/>
+                                    <field name="company_code" optional="hide"/>
+                                    <field name="initial_release_date" optional="hide"/>
+                                    <field name="initial_release_time" optional="hide"/>
+                                    <field name="final_release_date" optional="hide"/>
+
+                                    <field name="purchase_order_item" optional="hide"/>
+                                    <field name="material_code" optional="hide"/>
+                                    <field name="vendor_material" optional="hide"/>
+                                    <field name="color_code" optional="hide"/>
+                                    <field name="color_code_2" optional="show"/>
+                                    <field name="ref_material" optional="hide"/>
+                                    <field name="ref_material_2" optional="hide"/>
+                                    <field name="item_text" optional="hide"/>
+                                    <field name="mat_po_text" optional="hide"/>
+                                    <field name="page_format" optional="hide"/>
+                                    <field name="material_description" optional="hide"/>
+                                    <field name="sales_order_line" optional="hide"/>
+                                    <field name="sales_order_schedule_line" optional="hide"/>
+                                    <field name="sales_order_item" optional="hide"/>
+                                    <field name="SoRefLv" optional="hide"/>
+                                    <field name="delivery_date" optional="hide"/>
+                                    <field name="order_quantity" optional="hide"/>
+                                    <field name="size_quantity" optional="hide"/>
+                                    <field name="uom" optional="hide"/>
+                                    <field name="net_price" optional="hide"/>
+                                    <field name="discount_percentage" optional="hide"/>
+                                    <field name="discount_value" optional="hide"/>
+                                    <field name="net_value" optional="hide"/>
+                                    <field name="text" optional="hide"/>
+                                    <field name="product_type" optional="hide"/>
+                                    <field name="gender" optional="hide"/>
+                                    <field name="order_reason" optional="hide"/>
+                                    <field name="garment_type" optional="hide"/>
+                                    <field name="ptlcode" optional="hide"/>
+                                    <field name="ship_mode" optional="hide"/>
+                                    <field name="sales_order_season" optional="hide"/>
+                                    <field name="buy_year" optional="hide"/>
+                                    <field name="brand" optional="hide"/>
+                                    <field name="department_code" optional="hide"/>
+                                    <field name="emotional_space" optional="hide"/>
+                                    <field name="planning_group" optional="hide"/>
+                                    <field name="cpo" optional="hide"/>
+                                    <field name="customer_style" optional="show"/>
+                                    <field name="customer_style_desc" optional="hide"/>
+                                    <field name="size_range" optional="hide"/>
+                                    <field name="grid_value" optional="show"/>
+                                    <field name="size_lv" optional="hide"/>
+                                    <field name="ex_factory_date" optional="hide"/>
+                                    <field name="additional_sku_no" optional="hide"/>
+                                    <field name="fg_size" optional="hide"/>
+                                    <field name="additional_field_1" optional="hide"/>
+                                    <field name="additional_field_2" optional="hide"/>
+                                    <field name="ProductRef" optional="hide"/>
+                                    <field name="ChoosePo" optional="hide"/>
+                                    <field name="DelDate" optional="hide"/>
+                                    <field name="date_of_manufacture_last_four_letters" optional="hide"/>
+                                    <field name="vsd" optional="hide"/>
+                                    <field name="vendor_id" optional="hide"/>
+                                    <field name="Status" optional="hide"/>
+                                    <field name="RnNumber" optional="hide"/>
+                                    <field name="CaNumber" optional="hide"/>
+                                    <field name="ChainID_id" optional="hide"/>
+                                    <field name="color_desc" optional="hide"/>
+                                    <field name="Collection" optional="hide"/>
+                                    <field name="silhouette" optional="hide"/>
+                                    <field name="ItlCode" optional="hide"/>
+                                    <field name="Coo" optional="hide"/>
+                                    <field name="season" optional="hide"/>
+
+                                    <field name="additional_ins" optional="hide"/>
+                                    <field name="care_instruction_set_code" optional="hide"/>
+
+                                    <field name="sku" optional="show"/>
+                                    <field name="article_num" optional="show"/>
+                                    <field name="size_id" optional="show"/>
+                                    <field name="retail_usd" optional="show"/>
+                                    <field name="retail_cad" optional="show"/>
+                                    <field name="retail_gbp" optional="show"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Purchase Order Care Lable" name="Purchase_order_care_lable">
+                            <field name="line_ids_care_lable">
+                                <tree create="0" editable="0">
+                                    <field name="line_number" optional="show"/>
+                                    <field name="po_number" optional="show"/>
+                                    <field name="POwithLine" optional="show"/>
+                                    <field name="purchase_order_version" optional="hide"/>
+                                    <field name="po_date" optional="hide"/>
+                                    <field name="last_revision_date" optional="hide"/>
+                                    <field name="currency" optional="hide"/>
+
+                                    <field name="Customer_name" optional="hide"/>
+                                    <field name="CustomerID" optional="hide"/>
+                                    <field name="AddressID" optional="hide"/>
+                                    <field name="DeliveryAddress"/>
+
+
+                                    <field name="consignee_name" optional="hide"/>
+                                    <field name="consignee_name2" optional="hide"/>
+                                    <field name="consignee_name3" optional="hide"/>
+                                    <field name="consignee_add1" optional="hide"/>
+                                    <field name="consignee_add2" optional="hide"/>
+                                    <field name="contact_person" optional="hide"/>
+                                    <field name="contact_tel" optional="hide"/>
+                                    <field name="contact_email" optional="hide"/>
+                                    <field name="supplier_name" optional="hide"/>
+                                    <field name="supplier_add1" optional="hide"/>
+                                    <field name="supplier_add2" optional="hide"/>
+                                    <field name="supplier_tel" optional="hide"/>
+                                    <field name="supplier_fax" optional="hide"/>
+                                    <field name="bill_to_name" optional="hide"/>
+                                    <field name="bill_to_name2" optional="hide"/>
+                                    <field name="bill_to_name3" optional="hide"/>
+                                    <field name="bill_to_add1" optional="hide"/>
+                                    <field name="bill_to_add2" optional="hide"/>
+                                    <field name="notify_add1" optional="hide"/>
+                                    <field name="notify_add2" optional="hide"/>
+                                    <field name="season" optional="hide"/>
+
+                                    <field name="cus_field1" optional="hide"/>
+                                    <field name="end_buyer_account" optional="hide"/>
+                                    <field name="end_buyer" optional="hide"/>
+                                    <field name="inco_terms" optional="hide"/>
+                                    <field name="inco_term_desc" optional="hide"/>
+                                    <field name="payment_mode" optional="hide"/>
+                                    <field name="delivery_address_code" optional="hide"/>
+                                    <field name="delivery_address" optional="hide"/>
+                                    <field name="header_text" optional="hide"/>
+                                    <field name="header_note" optional="hide"/>
+                                    <field name="order_mode" optional="hide"/>
+                                    <field name="company_code" optional="hide"/>
+                                    <field name="initial_release_date" optional="hide"/>
+                                    <field name="initial_release_time" optional="hide"/>
+                                    <field name="final_release_date" optional="hide"/>
+
+                                    <field name="purchase_order_item" optional="hide"/>
+                                    <field name="material_code" optional="hide"/>
+                                    <field name="vendor_material" optional="hide"/>
+                                    <field name="color_code" optional="hide"/>
+                                    <field name="color_code_2" optional="show"/>
+                                    <field name="ref_material" optional="hide"/>
+                                    <field name="ref_material_2" optional="hide"/>
+                                    <field name="item_text" optional="hide"/>
+                                    <field name="mat_po_text" optional="hide"/>
+                                    <field name="page_format" optional="hide"/>
+                                    <field name="material_description" optional="hide"/>
+                                    <field name="sales_order_line" optional="hide"/>
+                                    <field name="sales_order_schedule_line" optional="hide"/>
+                                    <field name="sales_order_item" optional="hide"/>
+                                    <field name="SoRefLv" optional="hide"/>
+                                    <field name="delivery_date" optional="hide"/>
+                                    <field name="order_quantity" optional="hide"/>
+                                    <field name="size_quantity" optional="hide"/>
+                                    <field name="uom" optional="hide"/>
+                                    <field name="net_price" optional="hide"/>
+                                    <field name="discount_percentage" optional="hide"/>
+                                    <field name="discount_value" optional="hide"/>
+                                    <field name="net_value" optional="hide"/>
+                                    <field name="text" optional="hide"/>
+                                    <field name="product_type" optional="hide"/>
+                                    <field name="gender" optional="hide"/>
+                                    <field name="order_reason" optional="hide"/>
+                                    <field name="garment_type" optional="hide"/>
+                                    <field name="ptlcode" optional="hide"/>
+                                    <field name="ship_mode" optional="hide"/>
+                                    <field name="sales_order_season" optional="hide"/>
+                                    <field name="buy_year" optional="hide"/>
+                                    <field name="brand" optional="hide"/>
+                                    <field name="department_code" optional="hide"/>
+                                    <field name="emotional_space" optional="hide"/>
+                                    <field name="planning_group" optional="hide"/>
+                                    <field name="cpo" optional="hide"/>
+                                    <field name="customer_style" optional="show"/>
+                                    <field name="customer_style_desc" optional="hide"/>
+                                    <field name="size_range" optional="hide"/>
+                                    <field name="grid_value" optional="show"/>
+                                    <field name="size_lv" optional="hide"/>
+                                    <field name="ex_factory_date" optional="hide"/>
+                                    <field name="additional_sku_no" optional="hide"/>
+                                    <field name="fg_size" optional="hide"/>
+                                    <field name="additional_field_1" optional="hide"/>
+                                    <field name="additional_field_2" optional="hide"/>
+                                    <field name="ProductRef" optional="hide"/>
+                                    <field name="ChoosePo" optional="hide"/>
+                                    <field name="DelDate" optional="hide"/>
+                                    <field name="date_of_manufacture_last_four_letters" optional="hide"/>
+                                    <field name="vsd" optional="hide"/>
+                                    <field name="vendor_id" optional="hide"/>
+                                    <field name="Status" optional="hide"/>
+                                    <field name="RnNumber" optional="hide"/>
+                                    <field name="CaNumber" optional="hide"/>
+                                    <field name="ChainID_id" optional="hide"/>
+                                    <field name="color_desc" optional="hide"/>
+                                    <field name="Collection" optional="hide"/>
+                                    <field name="silhouette" optional="hide"/>
+                                    <field name="ItlCode" optional="hide"/>
+                                    <field name="Coo" optional="hide"/>
+                                    <field name="season" optional="hide"/>
+
+                                    <field name="additional_ins" optional="hide"/>
+                                    <field name="care_instruction_set_code" optional="hide"/>
+
+                                    <field name="sku" optional="show"/>
+                                    <field name="article_num" optional="show"/>
+                                    <field name="size_id" optional="show"/>
+                                    <field name="retail_usd" optional="show"/>
+                                    <field name="retail_cad" optional="show"/>
+                                    <field name="retail_gbp" optional="show"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Purchase Order Price Tkt" name="Purchase_order_price_tkt">
+                            <field name="line_ids_price_tkt">
                                 <tree create="0" editable="0">
                                     <field name="line_number" optional="show"/>
                                     <field name="po_number" optional="show"/>
