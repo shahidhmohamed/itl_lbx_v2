@@ -18,14 +18,10 @@ class GetPo(models.Model):
 
     order_number = fields.Char(string='Order Number', required=True)
 
-
     line_ids = fields.One2many('get_po_mas_lines', 'header_table', string='Order Lines')
     line_ids_main_lable = fields.One2many('get_po_mas_lines_main_lable', 'header_table', string='Order Lines Main Lable')
     line_ids_care_lable = fields.One2many('get_po_mas_lines_care_lable', 'header_table', string='Order Lines Care Lable')
     line_ids_price_tkt = fields.One2many('get_po_mas_lines_price_tkt', 'header_table', string='Order Lines Price tkt')
-
-
-
 
     pdm = fields.Selection([('PDM300', 'PDM300'), ('PSI100', 'PSI100')],
                               string='System', default='PDM300')
@@ -233,8 +229,9 @@ class GetPo(models.Model):
 
     '''Get Po Details'''
     def fetch_po_data(self):
-        if self.line_ids:
+        if self.line_ids and self.line_ids_care_lable and self.line_ids_main_lable and self.line_ids_price_tkt:
             raise UserError(_('Data already fetched. Cannot perform operation again.'))
+
         url = 'https://nwportal.masholdings.com/POXMLDownload/Config1?wsdl'
         headers = {'Content-Type': 'text/xml'}
         
@@ -277,8 +274,23 @@ class GetPo(models.Model):
                     
                     if not decoded_root.findall('.//PurchaseOrder'):
                         raise UserError(f"No Purchase Order found for the given number: {self.order_number}")
-                    
-                    self.line_ids.unlink()
+
+                    # Clear existing lines based on the selected 'ChoosePo'
+                    if self.ChoosePo == 'RFID':
+                        self.line_ids.unlink()
+                        model_to_create = 'get_po_mas_lines'
+                    elif self.ChoosePo == 'CARE LABELS':
+                        self.line_ids_care_lable.unlink()
+                        model_to_create = 'get_po_mas_lines_care_lable'
+                    elif self.ChoosePo == 'MAIN LABELS':
+                        self.line_ids_main_lable.unlink()
+                        model_to_create = 'get_po_mas_lines_main_lable'
+                    elif self.ChoosePo == 'PRICE TKT / BARCODE STK':
+                        self.line_ids_price_tkt.unlink()
+                        model_to_create = 'get_po_mas_lines_price_tkt'
+                    else:
+                        raise UserError("Invalid selection for ChoosePo")
+
                     lines_to_create = []
 
                     def valid_date(date_str):
@@ -401,7 +413,8 @@ class GetPo(models.Model):
                                 final_values = {**line_values, **schedule_line_values}
                                 lines_to_create.append(final_values)
                     
-                    self.env['get_po_mas_lines'].create(lines_to_create)
+                    if lines_to_create:
+                        self.env[model_to_create].create(lines_to_create)
                     message = _("RECEIVED SUCCESSFULLY.")
                     return {
                         'type': 'ir.actions.client',

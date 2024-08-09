@@ -63,7 +63,7 @@
                     </group>
                     <!-- Notebook for displaying different tabs -->
                     <notebook>
-                        <page string="Purchase Order Rfid" name="Purchase_order_rfid">
+                        <page string="Purchase Order Rfid" name="Purchase_order_rfid" attrs="{'invisible': [('ChoosePo', 'in', ['CARE LABELS', 'MAIN LABELS', 'PRICE TKT / BARCODE STK'])]}">
                             <field name="line_ids">
                                 <tree create="0" editable="0">
                                     <field name="line_number" optional="show"/>
@@ -194,7 +194,7 @@
                                 </tree>
                             </field>
                         </page>
-                        <page string="Purchase Order Main Lable" name="Purchase_order_main_lable">
+                        <page string="Purchase Order Main Lable" name="Purchase_order_main_lable" attrs="{'invisible': [('ChoosePo', 'in', ['CARE LABELS', 'RFID', 'PRICE TKT / BARCODE STK'])]}">
                             <field name="line_ids_main_lable">
                                 <tree create="0" editable="0">
                                     <field name="line_number" optional="show"/>
@@ -325,7 +325,7 @@
                                 </tree>
                             </field>
                         </page>
-                        <page string="Purchase Order Care Lable" name="Purchase_order_care_lable">
+                        <page string="Purchase Order Care Lable" name="Purchase_order_care_lable" attrs="{'invisible': [('ChoosePo', 'in', ['MAIN LABELS', 'RFID', 'PRICE TKT / BARCODE STK'])]}">
                             <field name="line_ids_care_lable">
                                 <tree create="0" editable="0">
                                     <field name="line_number" optional="show"/>
@@ -456,7 +456,7 @@
                                 </tree>
                             </field>
                         </page>
-                        <page string="Purchase Order Price Tkt" name="Purchase_order_price_tkt">
+                        <page string="Purchase Order Price Tkt" name="Purchase_order_price_tkt" attrs="{'invisible': [('ChoosePo', 'in', ['MAIN LABELS', 'RFID', 'CARE LABELS'])]}">
                             <field name="line_ids_price_tkt">
                                 <tree create="0" editable="0">
                                     <field name="line_number" optional="show"/>
