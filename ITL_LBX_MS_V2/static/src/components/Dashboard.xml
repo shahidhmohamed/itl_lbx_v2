@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
-    <t t-name="Itl.Dashboard" owl="1">
+    <div t-name="Itl.Dashboard" owl="1" class="">
         <div class="vh-100 overflow-auto bg-muted">
             <div class="row m-3">
                 <div class="col-lg-7">
@@ -8,80 +8,43 @@
                         <div class="col m-0 p-0">
                             <div class="shadow-sm border m-2 p-4 bg-white">
                                 <div class="d-flex align-items-center justify-content-between">
-                                    <h1 class="text-primary fw-bold">ITL Dashboard</h1>
-                                    <div>
-                                        <select class="form-select">
-                                            <option value="0">Select Period</option>
-                                            <option value="7">Last 7 Days</option>
-                                            <option value="30">Last 30 Days</option>
-                                            <option value="90">Last 90 Days</option>
-                                            <option value="365">Last 365 Days</option>
-                                        </select>
-                                    </div>
+                                    <h1 class="text-blue fw-bold text-2xl">ITL Dashboard</h1>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="row">
-                        <ItlCard name="'Quotations'" value="10" percentage="6" />
-                        <ItlCard name="'Orders'" value="20" percentage="20"/>
-                        <ItlCard name="'Revenues'" value="'30.50K'" percentage="-3"/>
-                        <ItlCard name="'Average Order'" value="'2.5K'" percentage="-10"/>
+                        <ItlCard done="purchase_order_count.all_purchase_order" label="'Total Orders'"/>
+                        <ItlCard done="purchase_order_count.open" label="'Open Orders'"/>
+                        <ItlCard done="purchase_order_count.done" label="'Success Orders'"/>
+                        <ItlCard done="purchase_order_count.cancelled" label="'Cancelled Orders'"/>
                     </div>
                     <div class="row">
                         <div class="col-lg-6 m-0 p-0">
                             <div class="shadow-sm border m-2 p-4 bg-white">
                                 <div class="d-flex align-items-center justify-content-between">
-                                    <h3 class="text-primary fw-bold">Top Products</h3>
+                                    <h3 class="text-primary fw-bold">Order Status</h3>
                                     <div class="px-3 py-1 bg-primary cursor-pointer">
                                         <span class="fa fa-arrow-right text-white"/>
                                     </div>
                                 </div>
-                                <ChartRenderer type="'doughnut'" title="'Top Products Report'"/>
-                            </div>
-                        </div>
-                        <div class="col-lg-6 m-0 p-0">
-                            <div class="shadow-sm border m-2 p-4 bg-white">
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <h3 class="text-primary fw-bold">Top Sales People</h3>
-                                    <div class="px-3 py-1 bg-primary cursor-pointer">
-                                        <span class="fa fa-arrow-right text-white"/>
-                                    </div>
-                                </div>
-                                <ChartRenderer type="'pie'" title="'Top Sales People Report'"/>
+                                <ChartRenderer success="purchase_order_count.done" cancelled="purchase_order_count.cancelled" open="purchase_order_count.open" all="purchase_order_count.all_purchase_order" title="'Order Status'" type="'doughnut'"/>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-5">
+
+                <!-- This column will be aligned to the right side -->
+                <div class="col-lg-5 ml-auto">
                     <div class="row">
-                        <div class="col m-0 p-0">
-                            <div class="shadow-sm border m-2 p-4 bg-white">
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <h3 class="text-primary fw-bold">Monthly Sales</h3>
-                                    <div class="px-3 py-1 bg-primary cursor-pointer">
-                                        <span class="fa fa-arrow-right text-white"/>
-                                    </div>
-                                </div>
-                                <ChartRenderer type="'bar'" title="'Monthly Sales Report'"/>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col m-0 p-0">
-                            <div class="shadow-sm border m-2 p-4 bg-white">
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <h3 class="text-primary fw-bold">Partner Orders</h3>
-                                    <div class="px-3 py-1 bg-primary cursor-pointer">
-                                        <span class="fa fa-arrow-right text-white"/>
-                                    </div>
-                                </div>
-                                <ChartRenderer type="'line'" title="'Partner Orders Report'"/>
-                            </div>
-                        </div>
+                        <PoCard done="purchase_order_count.rfid_count" label="'RFID'"/>
+                        <PoCard done="purchase_order_count.care_labels_count" label="'CARE LABELS'"/>
+                        <PoCard done="purchase_order_count.main_lable_count" label="'MAIN LABELS'"/>
+                        <PoCard done="purchase_order_count.price_tkt_count" label="'PRICE TKT / BARCODE STK'"/>
                     </div>
                 </div>
+
             </div>
         </div>
-    </t>
+    </div>
 </templates>

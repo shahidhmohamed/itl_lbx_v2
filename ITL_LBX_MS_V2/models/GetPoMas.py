@@ -54,6 +54,11 @@ class GetPo(models.Model):
             'all_purchase_order': len(self.env['get_po_mas'].search([])),
             'done': len(self.env['get_po_mas'].search([("Status", "=", "Success")])),
             'cancelled': len(self.env['get_po_mas'].search([("Status", "=", "Cancelled")])),
+            'open': len(self.env['get_po_mas'].search([("Status", "=", "Open")])),
+            'rfid_count': len(self.env['get_po_mas'].search([("ChoosePo", "=", "RFID")])),
+            'care_labels_count': len(self.env['get_po_mas'].search([("ChoosePo", "=", "CARE LABELS")])),
+            'main_lable_count': len(self.env['get_po_mas'].search([("ChoosePo", "=", "MAIN LABELS")])),
+            'price_tkt_count': len(self.env['get_po_mas'].search([("ChoosePo", "=", "PRICE TKT / BARCODE STK")])),
             
         }
         return purchase_order_count
