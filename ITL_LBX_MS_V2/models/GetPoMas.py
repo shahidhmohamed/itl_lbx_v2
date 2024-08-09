@@ -39,15 +39,24 @@ class GetPo(models.Model):
     ChainID = fields.Many2one('chain_master',string='Chain Id', store=True)
     ChainID_id = fields.Char(string='Chain Id', compute = '_compute_chain_id', store=True)
 
-    @api.model
-    def compute_total_orders(self):
-        total_orders = {
-            'total_orders': len(self.search([])),
-            'all_total_order': len(self.search([])),
-            'success': len(self.search([("Status", "=", "Success")])),
-        }
-        return total_orders
+    # @api.model
+    # def compute_total_orders(self):
+    #     total_purchase_orders = {
+    #         'all_total_order': len(self.search([])),
+    #         'success': len(self.search([("Status", "=", "Success")])),
+    #     }
+    #     return total_purchase_orders
 
+
+    @api.model
+    def get_purchase_order_count(self):
+        purchase_order_count = {
+            'all_purchase_order': len(self.env['get_po_mas'].search([])),
+            'done': len(self.env['get_po_mas'].search([("Status", "=", "Success")])),
+            'cancelled': len(self.env['get_po_mas'].search([("Status", "=", "Cancelled")])),
+            
+        }
+        return purchase_order_count
 
     @api.depends('ChainID')
     def _compute_chain_id(self):
