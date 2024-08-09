@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Action to open the form and tree views -->
+    <record id="action_get_vpo_mas" model="ir.actions.act_window">
+        <field name="name">Mas Integration Vpo</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">get_vpo_mas</field>
+        <field name="view_mode">tree,form</field>
+        <field name="target">current</field>
+    </record>
+
+    <!-- Form view for get_vpo model -->
+    <record id="mas_integration_get_vpo_ms_form" model="ir.ui.view">
+        <field name="name">Mas Integration Vpo</field>
+        <field name="model">get_vpo_mas</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="po_number"/>
+                        <field name="file_ids"/>
+                        <button name="import_file" string="Import" type="object" class="btn-primary o_button_icon" icon="fa-upload"/>
+                        <button name="delete_records_from_related_model" string="Delete" type="object" class="btn-primary o_button_icon" icon="fa-trash"/>
+                    </group>
+                    <!-- Notebook for displaying different tabs -->
+                    <notebook>
+                        <page string="VPO" name="vpo">
+                            <field name="line_ids">
+                                <tree create="0" editable="0">
+                                    <field name="po_number"/>
+                                    <field name="file_number"/>
+                                    <field name="style"/>
+                                    <field name="cc"/>
+                                    <field name="size"/>
+                                    <field name="size_lv"/>
+                                    <field name="retail_usd"/>
+                                    <field name="retail_cad"/>
+                                    <field name="retail_gbp"/>
+                                    <field name="sku"/>
+                                    <field name="desc"/>
+                                    <field name="article"/>
+                                    <field name="qty"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="HASH TABLE" name="hsash_table">
+                            <field name="imported_files">
+                                <tree create="0" editable="0">
+                                    <field name="file_number"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Tree view for get_vpo model -->
+    <record id="mas_integration_get_vpo_ms_tree" model="ir.ui.view">
+        <field name="name">Mas Integration Vpo</field>
+        <field name="model">get_vpo_mas</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="po_number"/>
+            </tree>
+        </field>
+    </record>
+
+    <menuitem id="mas_get_vpo" name="Mas Import Vpo" parent ="menu_items_mas" action = "action_get_vpo_mas" sequence="20" />
+</odoo>

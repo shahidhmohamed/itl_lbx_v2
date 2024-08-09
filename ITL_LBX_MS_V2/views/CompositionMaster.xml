@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_composition_master" model="ir.actions.act_window">
+        <field name="name">Composition Master</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">composition_master</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+
+    <!-- Start of Tree View -->
+    <record id = "composition_master_tree" model = "ir.ui.view">
+        <field name = "name">Composition Master</field>
+        <field name = "model">composition_master</field>
+        <field name = "arch" type = "xml">
+            <tree>
+                <field name = "FinalComposition"/>
+                <!-- <field name = "FromFiber2"/> -->
+            </tree>
+        </field>
+    </record>
+    <!-- End of Tree View -->
+
+    <!-- Start of form View -->
+    <record id="sub_fiber_form" model="ir.ui.view">
+        <field name="name">Composition Master</field>
+        <field name="model">composition_master</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+
+                    <group>
+                        <group>
+                            <field name="id" style="font-size: 15px"/>
+                            <field name="FinalComposition" style="font-size: 15px"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Component 1" name="component_1">
+                            <group name="container_row_2">
+                                <group string="Component" name="c_1" priority="1">
+                                    <field name="Component_1" />
+                                </group>
+                                <group string="Percentage" name="c_1" priority="1">
+                                    <field name="composition_1" />
+                                </group>
+                                <group string="Component" name="c_1" priority="1">
+                                    <field name="component_1_Fiber1" />
+                                    <field name="component_1_Fiber2" />
+                                    <field name="component_1_Fiber3" />
+                                    <field name="component_1_Fiber4" />
+                                    <field name="component_1_Fiber5" />
+                                    <field name="component_1_Fiber6" />
+                                    <field name="component_1_Fiber7" />
+                                    <field name="component_1_Fiber8" />
+                                    <field name="component_1_Fiber9" />
+                                    <field name="component_1_Fiber10" />
+
+                                </group>
+                                <group string="FIBER PERCENTAGE" name="f_p" priority="2">
+                                    <field name="component_1_Fiber1_Percentage" />
+                                    <field name="component_1_Fiber2_Percentage" />
+                                    <field name="component_1_Fiber3_Percentage" />
+                                    <field name="component_1_Fiber4_Percentage" />
+                                    <field name="component_1_Fiber5_Percentage" />
+                                    <field name="component_1_Fiber6_Percentage" />
+                                    <field name="component_1_Fiber7_Percentage" />
+                                    <field name="component_1_Fiber8_Percentage" />
+                                    <field name="component_1_Fiber9_Percentage" />
+                                    <field name="component_1_Fiber10_Percentage" />
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Component 2" name="component_2">
+                            <group name="container_row_2">
+                                <group string="Component" name="c_1" priority="1">
+                                    <field name="Component_2" />
+                                </group>
+                                <group string="Percentage" name="c_1" priority="1">
+                                    <field name="composition_2" />
+                                </group>
+                                <group string="Component" name="c_1" priority="1">
+                                    <field name="component_2_Fiber1" />
+                                    <field name="component_2_Fiber2" />
+                                    <field name="component_2_Fiber3" />
+                                    <field name="component_2_Fiber4" />
+                                    <field name="component_2_Fiber5" />
+                                    <field name="component_2_Fiber6" />
+                                    <field name="component_2_Fiber7" />
+                                    <field name="component_2_Fiber8" />
+                                    <field name="component_2_Fiber9" />
+                                    <field name="component_2_Fiber10" />
+                                </group>
+                                <group string="FIBER PERCENTAGE" name="f_p" priority="2">
+                                    <field name="component_2_Fiber1_Percentage" />
+                                    <field name="component_2_Fiber2_Percentage" />
+                                    <field name="component_2_Fiber3_Percentage" />
+                                    <field name="component_2_Fiber4_Percentage" />
+                                    <field name="component_2_Fiber5_Percentage" />
+                                    <field name="component_2_Fiber6_Percentage" />
+                                    <field name="component_2_Fiber7_Percentage" />
+                                    <field name="component_2_Fiber8_Percentage" />
+                                    <field name="component_2_Fiber9_Percentage" />
+                                    <field name="component_2_Fiber10_Percentage" />
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Component 3" name="component_3">
+                            <group name="container_row_2">
+                                <group string="Component" name="c_3" priority="1">
+                                    <field name="Component_3" />
+                                </group>
+                                <group string="Percentage" name="c_3" priority="1">
+                                    <field name="composition_3" />
+                                </group>
+                                <group string="Component" name="c_3" priority="1">
+                                    <field name="component_3_Fiber1" />
+                                    <field name="component_3_Fiber2" />
+                                    <field name="component_3_Fiber3" />
+                                    <field name="component_3_Fiber4" />
+                                    <field name="component_3_Fiber5" />
+                                    <field name="component_3_Fiber6" />
+                                    <field name="component_3_Fiber7" />
+                                    <field name="component_3_Fiber8" />
+                                    <field name="component_3_Fiber9" />
+                                    <field name="component_3_Fiber10" />
+                                </group>
+                                <group string="FIBER PERCENTAGE" name="f_p" priority="2">
+                                    <field name="component_3_Fiber1_Percentage" />
+                                    <field name="component_3_Fiber2_Percentage" />
+                                    <field name="component_3_Fiber3_Percentage" />
+                                    <field name="component_3_Fiber4_Percentage" />
+                                    <field name="component_3_Fiber5_Percentage" />
+                                    <field name="component_3_Fiber6_Percentage" />
+                                    <field name="component_3_Fiber7_Percentage" />
+                                    <field name="component_3_Fiber8_Percentage" />
+                                    <field name="component_3_Fiber9_Percentage" />
+                                    <field name="component_3_Fiber10_Percentage" />
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Component 4" name="component_4">
+                            <group name="container_row_2">
+                                <group string="Component" name="c_4" priority="1">
+                                    <field name="Component_4" />
+                                </group>
+                                <group string="Percentage" name="c_3" priority="1">
+                                    <field name="composition_4" />
+                                </group>
+                                <group string="Component" name="c_4" priority="1">
+                                    <field name="component_4_Fiber1" />
+                                    <field name="component_4_Fiber2" />
+                                    <field name="component_4_Fiber3" />
+                                    <field name="component_4_Fiber4" />
+                                    <field name="component_4_Fiber5" />
+                                    <field name="component_4_Fiber6" />
+                                    <field name="component_4_Fiber7" />
+                                    <field name="component_4_Fiber8" />
+                                    <field name="component_4_Fiber9" />
+                                    <field name="component_4_Fiber10" />
+                                </group>
+                                <group string="FIBER PERCENTAGE" name="f_p" priority="2">
+                                    <field name="component_4_Fiber1_Percentage" />
+                                    <field name="component_4_Fiber2_Percentage" />
+                                    <field name="component_4_Fiber3_Percentage" />
+                                    <field name="component_4_Fiber4_Percentage" />
+                                    <field name="component_4_Fiber5_Percentage" />
+                                    <field name="component_4_Fiber6_Percentage" />
+                                    <field name="component_4_Fiber7_Percentage" />
+                                    <field name="component_4_Fiber8_Percentage" />
+                                    <field name="component_4_Fiber9_Percentage" />
+                                    <field name="component_4_Fiber10_Percentage" />
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Component 5" name="component_5">
+                            <group name="container_row_2">
+                                <group string="Component" name="c_5" priority="1">
+                                    <field name="Component_5" />
+                                </group>
+                                <group string="Percentage" name="c_3" priority="1">
+                                    <field name="composition_5" />
+                                </group>
+                                <group string="Component" name="c_5" priority="1">
+                                    <field name="component_5_Fiber1" />
+                                    <field name="component_5_Fiber2" />
+                                    <field name="component_5_Fiber3" />
+                                    <field name="component_5_Fiber4" />
+                                    <field name="component_5_Fiber5" />
+                                    <field name="component_5_Fiber6" />
+                                    <field name="component_5_Fiber7" />
+                                    <field name="component_5_Fiber8" />
+                                    <field name="component_5_Fiber9" />
+                                    <field name="component_5_Fiber10" />
+                                </group>
+                                <group string="FIBER PERCENTAGE" name="f_p" priority="2">
+                                    <field name="component_5_Fiber1_Percentage" />
+                                    <field name="component_5_Fiber2_Percentage" />
+                                    <field name="component_5_Fiber3_Percentage" />
+                                    <field name="component_5_Fiber4_Percentage" />
+                                    <field name="component_5_Fiber5_Percentage" />
+                                    <field name="component_5_Fiber6_Percentage" />
+                                    <field name="component_5_Fiber7_Percentage" />
+                                    <field name="component_5_Fiber8_Percentage" />
+                                    <field name="component_5_Fiber9_Percentage" />
+                                    <field name="component_5_Fiber10_Percentage" />
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Component 6" name="component_6">
+                            <group name="container_row_2">
+                                <group string="Component" name="c_6" priority="1">
+                                    <field name="Component_6" />
+                                </group>
+                                <group string="Percentage" name="c_6" priority="1">
+                                    <field name="composition_6" />
+                                </group>
+                                <group string="Component" name="c_5" priority="1">
+                                    <field name="component_6_Fiber1" />
+                                    <field name="component_6_Fiber2" />
+                                    <field name="component_6_Fiber3" />
+                                    <field name="component_6_Fiber4" />
+                                    <field name="component_6_Fiber5" />
+                                    <field name="component_6_Fiber6" />
+                                    <field name="component_6_Fiber7" />
+                                    <field name="component_6_Fiber8" />
+                                    <field name="component_6_Fiber9" />
+                                    <field name="component_6_Fiber10" />
+                                </group>
+                                <group string="FIBER PERCENTAGE" name="f_p" priority="2">
+                                    <field name="component_6_Fiber1_Percentage" />
+                                    <field name="component_6_Fiber2_Percentage" />
+                                    <field name="component_6_Fiber3_Percentage" />
+                                    <field name="component_6_Fiber4_Percentage" />
+                                    <field name="component_6_Fiber5_Percentage" />
+                                    <field name="component_6_Fiber6_Percentage" />
+                                    <field name="component_6_Fiber7_Percentage" />
+                                    <field name="component_6_Fiber8_Percentage" />
+                                    <field name="component_6_Fiber9_Percentage" />
+                                    <field name="component_6_Fiber10_Percentage" />
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Component 7" name="component_7">
+                            <group name="container_row_2">
+                                <group string="Component" name="c_7" priority="1">
+                                    <field name="Component_7" />
+                                </group>
+                                <group string="Percentage" name="c_7" priority="1">
+                                    <field name="composition_7" />
+                                </group>
+                                <group string="Component" name="c_5" priority="1">
+                                    <field name="component_7_Fiber1" />
+                                    <field name="component_7_Fiber2" />
+                                    <field name="component_7_Fiber3" />
+                                    <field name="component_7_Fiber4" />
+                                    <field name="component_7_Fiber5" />
+                                    <field name="component_7_Fiber6" />
+                                    <field name="component_7_Fiber7" />
+                                    <field name="component_7_Fiber8" />
+                                    <field name="component_7_Fiber9" />
+                                    <field name="component_7_Fiber10" />
+                                </group>
+                                <group string="FIBER PERCENTAGE" name="f_p" priority="2">
+                                    <field name="component_7_Fiber1_Percentage" />
+                                    <field name="component_7_Fiber2_Percentage" />
+                                    <field name="component_7_Fiber3_Percentage" />
+                                    <field name="component_7_Fiber4_Percentage" />
+                                    <field name="component_7_Fiber5_Percentage" />
+                                    <field name="component_7_Fiber6_Percentage" />
+                                    <field name="component_7_Fiber7_Percentage" />
+                                    <field name="component_7_Fiber8_Percentage" />
+                                    <field name="component_7_Fiber9_Percentage" />
+                                    <field name="component_7_Fiber10_Percentage" />
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Component 8" name="component_8">
+                            <group name="container_row_2">
+                                <group string="Component" name="c_7" priority="1">
+                                    <field name="Component_8" />
+                                </group>
+                                <group string="Percentage" name="c_8" priority="1">
+                                    <field name="composition_8" />
+                                </group>
+                                <group string="Component" name="c_5" priority="1">
+                                    <field name="component_8_Fiber1" />
+                                    <field name="component_8_Fiber2" />
+                                    <field name="component_8_Fiber3" />
+                                    <field name="component_8_Fiber4" />
+                                    <field name="component_8_Fiber5" />
+                                    <field name="component_8_Fiber6" />
+                                    <field name="component_8_Fiber7" />
+                                    <field name="component_8_Fiber8" />
+                                    <field name="component_8_Fiber9" />
+                                    <field name="component_8_Fiber10" />
+                                </group>
+                                <group string="FIBER PERCENTAGE" name="f_p" priority="2">
+                                    <field name="component_8_Fiber1_Percentage" />
+                                    <field name="component_8_Fiber2_Percentage" />
+                                    <field name="component_8_Fiber3_Percentage" />
+                                    <field name="component_8_Fiber4_Percentage" />
+                                    <field name="component_8_Fiber5_Percentage" />
+                                    <field name="component_8_Fiber6_Percentage" />
+                                    <field name="component_8_Fiber7_Percentage" />
+                                    <field name="component_8_Fiber8_Percentage" />
+                                    <field name="component_8_Fiber9_Percentage" />
+                                    <field name="component_8_Fiber10_Percentage" />
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Component 9" name="component_9">
+                            <group name="container_row_2">
+                                <group string="Component" name="c_9" priority="1">
+                                    <field name="Component_9" />
+                                </group>
+                                <group string="Percentage" name="c_9" priority="1">
+                                    <field name="composition_9" />
+                                </group>
+                                <group string="Component" name="c_9" priority="1">
+                                    <field name="component_9_Fiber1" />
+                                    <field name="component_9_Fiber2" />
+                                    <field name="component_9_Fiber3" />
+                                    <field name="component_9_Fiber4" />
+                                    <field name="component_9_Fiber5" />
+                                    <field name="component_9_Fiber6" />
+                                    <field name="component_9_Fiber7" />
+                                    <field name="component_9_Fiber8" />
+                                    <field name="component_9_Fiber9" />
+                                    <field name="component_9_Fiber10" />
+                                </group>
+                                <group string="FIBER PERCENTAGE" name="f_p" priority="2">
+                                    <field name="component_9_Fiber1_Percentage" />
+                                    <field name="component_9_Fiber2_Percentage" />
+                                    <field name="component_9_Fiber3_Percentage" />
+                                    <field name="component_9_Fiber4_Percentage" />
+                                    <field name="component_9_Fiber5_Percentage" />
+                                    <field name="component_9_Fiber6_Percentage" />
+                                    <field name="component_9_Fiber7_Percentage" />
+                                    <field name="component_9_Fiber8_Percentage" />
+                                    <field name="component_9_Fiber9_Percentage" />
+                                    <field name="component_9_Fiber10_Percentage" />
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Component 10" name="component_10">
+                            <group name="container_row_2">
+                                <group string="Component" name="c_10" priority="1">
+                                    <field name="Component_10" />
+                                </group>
+                                <group string="Percentage" name="c_10" priority="1">
+                                    <field name="composition_10" />
+                                </group>
+                                <group string="Component" name="c_10" priority="1">
+                                    <field name="component_10_Fiber1" />
+                                    <field name="component_10_Fiber2" />
+                                    <field name="component_10_Fiber3" />
+                                    <field name="component_10_Fiber4" />
+                                    <field name="component_10_Fiber5" />
+                                    <field name="component_10_Fiber6" />
+                                    <field name="component_10_Fiber7" />
+                                    <field name="component_10_Fiber8" />
+                                    <field name="component_10_Fiber9" />
+                                    <field name="component_10_Fiber10" />
+                                </group>
+                                <group string="FIBER PERCENTAGE" name="f_p" priority="2">
+                                    <field name="component_10_Fiber1_Percentage" />
+                                    <field name="component_10_Fiber2_Percentage" />
+                                    <field name="component_10_Fiber3_Percentage" />
+                                    <field name="component_10_Fiber4_Percentage" />
+                                    <field name="component_10_Fiber5_Percentage" />
+                                    <field name="component_10_Fiber6_Percentage" />
+                                    <field name="component_10_Fiber7_Percentage" />
+                                    <field name="component_10_Fiber8_Percentage" />
+                                    <field name="component_10_Fiber9_Percentage" />
+                                    <field name="component_10_Fiber10_Percentage" />
+                                </group>
+                            </group>
+                        </page>
+
+
+
+                    </notebook>
+                </sheet>
+
+
+            </form>
+        </field>
+    </record>
+
+    <menuitem id="composition_master" name="Composition Master" parent ="composition_masters" action = "action_composition_master" sequence="160" />
+
+</odoo>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_fiber_master" model="ir.actions.act_window">
+        <field name="name">Fiber Master</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">fiber_master</field>
+        <field name="view_mode">kanban,tree,form</field>
+    </record>
+
+
+    <!-- Start of Tree View -->
+    <record id = "fiber_master_tree" model = "ir.ui.view">
+        <field name = "name">Fiber Master</field>
+        <field name = "model">fiber_master</field>
+        <field name = "arch" type = "xml">
+            <tree>
+                <field name = "fibername"/>
+            </tree>
+        </field>
+    </record>
+    <!-- End of Tree View -->
+
+    <menuitem id="composition_masters" name="Composition" parent ="master_files" sequence="130" />
+    <menuitem id="fiber_master" name="Fiber Master" parent ="composition_masters" action = "action_fiber_master" sequence="140" />
+
+
+</odoo>
