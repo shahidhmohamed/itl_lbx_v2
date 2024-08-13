@@ -4,7 +4,7 @@ import { registry } from "@web/core/registry";
 import { loadJS } from "@web/core/assets";
 const { Component, onWillStart, useRef, onMounted } = owl;
 
-export class ChartRenderer extends Component {
+export class PoChartRenderer extends Component {
   setup() {
     this.chartRef = useRef("chart");
 
@@ -16,16 +16,21 @@ export class ChartRenderer extends Component {
   }
 
   renderChart() {
+    console.log("RFID:", this.props.rfid);
+    console.log("MAIN_LABEL:", this.props.main_lable);
+    console.log("CARE_LABEL:", this.props.care_lable);
+    console.log("PRICE_TKT:", this.props.price_tkt);
+
     new Chart(this.chartRef.el, {
-      type: this.props.type,
+      type: this.props.type,  // This will now use 'bar' as the chart type
       data: {
-        labels: ['Success Orders', 'Cancelled Orders', 'Open Orders', 'Total Orders'],
+        labels: ['RFID', 'MAIN LABEL', 'CARE LABEL', 'PRICE TKT'],
         datasets: [{
           data: [
-            this.props.success,
-            this.props.cancelled,
-            this.props.open,
-            this.props.all
+            this.props.rfid,
+            this.props.main_lable,
+            this.props.care_lable,
+            this.props.price_tkt
           ],
           backgroundColor: ['#4CAF50', '#FF5252', '#FFC107', '#2196F3'],
           hoverOffset: 4
@@ -35,12 +40,17 @@ export class ChartRenderer extends Component {
         responsive: true,
         plugins: {
           legend: {
-            position: 'bottom',
+            display: false,  // Hide the legend for a bar chart
           },
           title: {
             display: true,
             text: this.props.title,
-            position: 'bottom',
+            position: 'top',
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true
           }
         }
       },
@@ -48,4 +58,4 @@ export class ChartRenderer extends Component {
   }
 }
 
-ChartRenderer.template = "Itl.ChartRenderer";
+PoChartRenderer.template = "Po.ChartRenderer";

@@ -28,6 +28,8 @@
         'views/CareInstructionSetCodeMaster.xml',
         'views/AdditionalInstructionMaster.xml',
         'views/Dashboard.xml',
+        'wizard/RfidPopUpWizard.xml',
+        'wizard/RfidPopUpWizardForm.xml',
         
     ],
     'assets': {

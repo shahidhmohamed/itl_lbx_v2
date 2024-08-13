@@ -36,3 +36,5 @@ access_additional_instruction_master,additional_instruction_master,model_additio
 access_get_po_mas_lines_care_lable,get_po_mas_lines_care_lable,model_get_po_mas_lines_care_lable,base.group_user,1,1,1,1
 access_get_po_mas_lines_main_lable,get_po_mas_lines_main_lable,model_get_po_mas_lines_main_lable,base.group_user,1,1,1,1
 access_get_po_mas_lines_price_tkt,get_po_mas_lines_price_tkt,model_get_po_mas_lines_price_tkt,base.group_user,1,1,1,1
+
+access_rfid_response_wizard,rfid_response_wizard,model_rfid_response_wizard,base.group_user,1,1,1,1

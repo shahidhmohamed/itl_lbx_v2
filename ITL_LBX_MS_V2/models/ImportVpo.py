@@ -158,7 +158,7 @@ class GetVpoMas(models.Model):
         # Check if any records were deleted
         if records_to_delete or imported_files_to_delete:
             # Notification for success
-            message = _("PO and related imported file records deleted successfully.")
+            message = _("Vpo and Hash Data deleted successfully.")
             return {
                 'type': 'ir.actions.client',
                 'tag': 'display_notification',

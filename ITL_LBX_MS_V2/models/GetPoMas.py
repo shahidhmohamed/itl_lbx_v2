@@ -6,10 +6,16 @@ from xml.etree import ElementTree as ET
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError, ValidationError
 import zeep
+from zeep import Client
+from zeep.transports import Transport
+from requests.auth import HTTPBasicAuth
+from requests import Session
 from xml.etree.ElementTree import Element, SubElement, tostring
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
-
+from lxml import etree
+from collections import defaultdict
+from datetime import date, timedelta
 
 class GetPo(models.Model):
     _name = 'get_po_mas'
@@ -17,6 +23,14 @@ class GetPo(models.Model):
     _rec_name = 'order_number'
 
     order_number = fields.Char(string='Order Number', required=True)
+    show_xml_response = fields.Selection([('True', 'Yes'), ('False', 'No')], string="Show XML", default='False', store=True)
+    xml_response = fields.Text(string='XML', readonly=False)
+
+    current_user = fields.Char(string='Current User', compute='_compute_current_user')
+
+    def _compute_current_user(self):
+        for record in self:
+            record.current_user = self.env.user.name
 
     line_ids = fields.One2many('get_po_mas_lines', 'header_table', string='Order Lines')
     line_ids_main_lable = fields.One2many('get_po_mas_lines_main_lable', 'header_table', string='Order Lines Main Lable')
@@ -24,9 +38,9 @@ class GetPo(models.Model):
     line_ids_price_tkt = fields.One2many('get_po_mas_lines_price_tkt', 'header_table', string='Order Lines Price tkt')
 
     pdm = fields.Selection([('PDM300', 'PDM300'), ('PSI100', 'PSI100')],
-                              string='System', default='PDM300')
+                              string='System', default='PDM300',required=True)
     ChoosePo = fields.Selection([('RFID', 'RFID'), ('CARE LABELS', 'CARE LABELS'), ('PRICE TKT / BARCODE STK', 'PRICE TKT / BARCODE STK'), ('MAIN LABELS', 'MAIN LABELS')],
-                              string='Choose Po', default='RFID')
+                              string='Choose Po', default='RFID',required=True)
     DelDate = fields.Date(string ="Delivery Date")
     vsd = fields.Char(string='Vsd')
     vendor_id = fields.Char(string='Vendor Id')
@@ -38,6 +52,8 @@ class GetPo(models.Model):
                               string='Ca number', default='67359')
     ChainID = fields.Many2one('chain_master',string='Chain Id', store=True)
     ChainID_id = fields.Char(string='Chain Id', compute = '_compute_chain_id', store=True)
+    matching_status = fields.Selection([('Success', 'Success'), ('Fail', 'Fail'),('Not Matched Yet','Not Matched Yet')],
+                              string='Match Status',default='Not Matched Yet')
 
     # @api.model
     # def compute_total_orders(self):
@@ -50,6 +66,7 @@ class GetPo(models.Model):
 
     @api.model
     def get_purchase_order_count(self):
+        today = date.today()
         purchase_order_count = {
             'all_purchase_order': len(self.env['get_po_mas'].search([])),
             'done': len(self.env['get_po_mas'].search([("Status", "=", "Success")])),
@@ -59,6 +76,7 @@ class GetPo(models.Model):
             'care_labels_count': len(self.env['get_po_mas'].search([("ChoosePo", "=", "CARE LABELS")])),
             'main_lable_count': len(self.env['get_po_mas'].search([("ChoosePo", "=", "MAIN LABELS")])),
             'price_tkt_count': len(self.env['get_po_mas'].search([("ChoosePo", "=", "PRICE TKT / BARCODE STK")])),
+            'today_order_count': len(self.search([('create_date', '>=', today), ('create_date', '<', today + timedelta(days=1))])),
             
         }
         return purchase_order_count
@@ -243,7 +261,16 @@ class GetPo(models.Model):
 
     '''Get Po Details'''
     def fetch_po_data(self):
-        if self.line_ids and self.line_ids_care_lable and self.line_ids_main_lable and self.line_ids_price_tkt:
+        if self.line_ids:
+            raise UserError(_('Data already fetched. Cannot perform operation again.'))
+
+        if self.line_ids_care_lable:
+            raise UserError(_('Data already fetched. Cannot perform operation again.'))
+
+        if self.line_ids_main_lable:
+            raise UserError(_('Data already fetched. Cannot perform operation again.'))
+
+        if self.line_ids_price_tkt:
             raise UserError(_('Data already fetched. Cannot perform operation again.'))
 
         url = 'https://nwportal.masholdings.com/POXMLDownload/Config1?wsdl'
@@ -409,7 +436,7 @@ class GetPo(models.Model):
                                 schedule_line_values = {
                                     'schedule_line_no': schedule_line.findtext("ScheduleLineNo", default=""),
                                     'grid_value': schedule_line.findtext("GridValue", default=""),
-                                    'delivery_date': valid_date(schedule_line.findtext("DeliveryDate", default="")),
+                                    'delivery_date1': valid_date(schedule_line.findtext("DeliveryDate", default="")),
                                     'sales_order_schedule_line': schedule_line.findtext("SalesOrder", default=""),
                                     'over_delivery_tolerance': float(schedule_line.findtext("OverDeliveryTolerance", '0').strip() or 0),
                                     'under_delivery_tolerance': float(schedule_line.findtext("UnderDeliveryTolerance", '0').strip() or 0),
@@ -457,7 +484,53 @@ class GetPo(models.Model):
                 raise UserError(f"{decoded_xml_string}")
         else:
             raise UserError(f"Error: {response.status_code}\n{response.reason}")
+
+    def fetch_po_data_xml(self):
+        url = 'https://nwportal.masholdings.com/POXMLDownload/Config1?wsdl'
+        headers = {'Content-Type': 'text/xml'}
+        
+        soap_request = f"""
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:pod="http://sap.com/podown/">
+           <soapenv:Header/>
+           <soapenv:Body>
+              <pod:getPO>
+                 <PO>{self.order_number}</PO>
+                 <Frdt>01.01.2020</Frdt>
+                 <Todt>31.12.2099</Todt>
+                 <IUser>V_PoornimaJa</IUser>
+                 <IPass>ITL@$OE@2o23</IPass>
+                 <MerName></MerName>
+                 <MerEmail></MerEmail>
+                 <Rev></Rev>
+                 <system>{self.pdm}</system>
+              </pod:getPO>
+           </soapenv:Body>
+        </soapenv:Envelope>
+        """
+        try:
+            response = requests.post(url, data=soap_request, headers=headers)
+            response.raise_for_status()
+        except requests.exceptions.RequestException:
+            raise UserError("Check your internet connection and try again.")
+
+        if response.status_code == 200:
+            response_xml = response.content.decode('utf-8')
             
+            try:
+                root = ET.fromstring(response_xml)
+                encoded_data_tag = root.find(".//return")
+                
+                if encoded_data_tag is not None:
+                    encoded_data = encoded_data_tag.text
+                    decoded_data = base64.b64decode(encoded_data)
+                    decoded_xml_string = decoded_data.decode("utf-8")
+                    decoded_root = ET.fromstring(decoded_xml_string)
+                    
+                    self.xml_response = decoded_xml_string
+                else:
+                    raise UserError("Failed to find the expected data in the response.")
+            except ET.ParseError:
+                raise UserError("Failed to parse the XML response.")
 
     def delete_records_from_related_model(self):
         if not self.order_number:
@@ -509,6 +582,7 @@ class GetPo(models.Model):
         VPO = self.env['get_vpo_mas_lines']
 
         missing_records_details = []
+        all_lines_success = True
 
         # Iterate through existing records and update values
         for existing_record in self.line_ids:
@@ -537,6 +611,12 @@ class GetPo(models.Model):
                     },
                     'reason': 'For This Po Records Matching criteria not found in VPO.',
                 })
+                all_lines_success = False
+        # Update the matching status on the header record
+        if all_lines_success:
+            self.matching_status = 'Success'
+        else:
+            self.matching_status = 'Fail'
 
         if missing_records_details:
             error_message = "Data not transferred for the following line numbers:\n"
@@ -651,7 +731,7 @@ class GetPo(models.Model):
                     "retail_price": line.retail_usd,
                     "retail_price2": line.retail_cad,
                     "retail_price3": line.retail_gbp,
-                    "size_quantity": line.quantity,
+                    "size_quantity": line.size_quantity,
                 }
             )
         root = ET.Element("customerorders")
@@ -795,7 +875,7 @@ class GetPo(models.Model):
         session.auth = HTTPBasicAuth("brandixws", "brandixws01")
         client = Client(wsdl_url, transport=Transport(session=session))
 
-        # Send the request
+        
         response = client.service.createCustomerOrders(
             system="test",
             usercode="brandixws",
@@ -803,8 +883,32 @@ class GetPo(models.Model):
             xmlinput=pretty_xml_str_rfid,
         )
 
-        # Print the response
-        raise UserError(_("Response:\n%s") % response)
+        if response:
+            # Create a wizard and pass the response content
+            wizard = self.env['rfid.response.wizard'].create({
+                'response_content': response,
+            })
+
+            # Return the action to open the wizard
+            return {
+                'type': 'ir.actions.act_window',
+                'res_model': 'rfid.response.wizard',
+                'view_mode': 'form',
+                'view_id': self.env.ref('ITL_LBX_MS_V2.view_rfid_response_wizard_form').id,
+                'target': 'new',
+                'res_id': wizard.id,
+            }
+        else:
+            message = _("The RFID posting failed.")
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'message': message,
+                    'type': 'danger',
+                    'sticky': True,
+                }
+            }
 
     xml_content = fields.Binary("XML Content", readonly=True)
 
@@ -863,7 +967,7 @@ class GetPo(models.Model):
                     "retail_price": line.retail_usd,
                     "retail_price2": line.retail_cad,
                     "retail_price3": line.retail_gbp,
-                    "size_quantity": line.quantity,
+                    "size_quantity": line.size_quantity,
                 }
             )
         root = ET.Element("customerorders")
