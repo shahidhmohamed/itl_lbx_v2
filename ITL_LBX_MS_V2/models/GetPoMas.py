@@ -28,6 +28,22 @@ class GetPo(models.Model):
 
     current_user = fields.Char(string='Current User', compute='_compute_current_user')
 
+    name = fields.Char(string="Order Ref" ,copy=False, default='New',index='trigram', compute='_order_ref')
+    state = fields.Selection([
+        ('New', 'New'),
+        ('Matched', 'Matched'),
+        ('Posted', 'Posted'),
+    ], string='Status', readonly=True, index=True, copy=False, default='New', tracking=True)
+    priority = fields.Selection(
+        [('0', 'Normal'), ('1', 'Urgent')], 'Priority', default='0', index=True)
+    @api.depends('order_number','ChoosePo')
+    def _order_ref(self):
+        for record in self:
+            if record.order_number and record.ChoosePo:
+                record.name = f"{record.ChoosePo}/{record.order_number}"
+            else:
+                record.name = False
+
     def _compute_current_user(self):
         for record in self:
             record.current_user = self.env.user.name
@@ -54,6 +70,16 @@ class GetPo(models.Model):
     ChainID_id = fields.Char(string='Chain Id', compute = '_compute_chain_id', store=True)
     matching_status = fields.Selection([('Success', 'Success'), ('Fail', 'Fail'),('Not Matched Yet','Not Matched Yet')],
                               string='Match Status',default='Not Matched Yet')
+
+    additional_care_instruction = fields.Many2one('additional_care_instruction',string="Additional Care Instruction")
+    additional_care_instruction_name = fields.Char(string='Additional Care Instruction', compute='_compute_additional_care_instruction_name',store=True)
+    @api.depends('additional_care_instruction')
+    def _compute_additional_care_instruction_name(self):
+        for record in self:
+            if record.additional_care_instruction_name:
+                record.additional_care_instruction_name = record.additional_care_instruction.additional_care_instruction_name
+            else:
+                record.additional_care_instruction_name = False
 
     # @api.model
     # def compute_total_orders(self):
@@ -388,6 +414,7 @@ class GetPo(models.Model):
 
                         line_items = order.find("LineItems").findall("LineItem")
                         for line_item in line_items:
+                            customer_style = line_item.findtext("CustomerStyle", default="")
                             line_values = {
                                 **order_values,
                                 'purchase_order_item': line_item.findtext("PurchaseOrderItem", default=""),
@@ -430,6 +457,14 @@ class GetPo(models.Model):
                                 'customer_style_desc': line_item.findtext("CustomerStyleDesc", default=""),
                                 'customer_ref1': line_item.findtext("CustomerRef1", default=""),
                             }
+
+                            if len(customer_style) == 8:
+                                line_values['vss_no'] = customer_style
+                                line_values['customer_style'] = customer_style
+                            else:
+                                line_values['vsd_style_6'] = customer_style
+                                line_values['vsd_style_9'] = customer_style
+                            
                             
                             schedule_lines = line_item.find("ScheduleLines").findall("ScheduleLine")
                             for schedule_line in schedule_lines:
@@ -532,15 +567,65 @@ class GetPo(models.Model):
             except ET.ParseError:
                 raise UserError("Failed to parse the XML response.")
 
+    # def delete_records_from_related_model(self):
+    #     if not self.order_number:
+    #         raise UserError(_('Please provide a PO Number for deleting records.'))
+
+    #     # Assuming lbx_mi_gpo_d001 is the related model
+    #     gpo_d001_model = self.env['get_po_mas_lines']
+
+    #     # Find records based on PoNumber
+    #     records_to_delete = gpo_d001_model.search([('po_number', '=', self.order_number)])
+
+    #     if not records_to_delete:
+    #         raise UserError(_('No records found with PO Number %s' % self.order_number))
+
+    #     # Delete the records in the related model
+    #     records_to_delete.unlink()
+
+    #     # Check if any records were deleted
+    #     if records_to_delete:
+    #         # Notification for success
+    #         message = _("PO deleted successfully.")
+    #         return {
+    #             'type': 'ir.actions.client',
+    #             'tag': 'display_notification',
+    #             'params': {
+    #                 'message': message,
+    #                 'type': 'danger',
+    #                 'sticky': True,
+    #                 'next': {
+    #                     'type': 'ir.actions.client',
+    #                     'tag': 'reload',
+    #                 }
+    #             }
+    #         }
+    #     else:
+    #         # No records deleted, show a different message or do nothing
+    #         return {'type': 'ir.actions.do_nothing'}
+
     def delete_records_from_related_model(self):
         if not self.order_number:
             raise UserError(_('Please provide a PO Number for deleting records.'))
 
-        # Assuming lbx_mi_gpo_d001 is the related model
-        gpo_d001_model = self.env['get_po_mas_lines']
+        # Choose the model based on the value of the ChoosePo field
+        if self.ChoosePo == 'RFID':
+            related_model = self.env['get_po_mas_lines']
+            line_field = 'line_ids'
+        elif self.ChoosePo == 'CARE LABELS':
+            related_model = self.env['get_po_mas_lines_care_lable']
+            line_field = 'line_ids_care_lable'
+        elif self.ChoosePo == 'PRICE TKT / BARCODE STK':
+            related_model = self.env['get_po_mas_lines_price_tkt']
+            line_field = 'line_ids_price_tkt'
+        elif self.ChoosePo == 'MAIN LABELS':
+            related_model = self.env['get_po_mas_lines_main_lable']
+            line_field = 'line_ids_main_lable'
+        else:
+            raise UserError(_('Invalid ChoosePo value.'))
 
-        # Find records based on PoNumber
-        records_to_delete = gpo_d001_model.search([('po_number', '=', self.order_number)])
+        # Find records based on PO Number
+        records_to_delete = related_model.search([('po_number', '=', self.order_number)])
 
         if not records_to_delete:
             raise UserError(_('No records found with PO Number %s' % self.order_number))
@@ -572,8 +657,81 @@ class GetPo(models.Model):
     selected_vpo_details = fields.Many2one('get_vpo_mas', string='Select Vpo')
     color_code_2 = fields.Char(string='Color Code 2', related="line_ids.color_code_2")
 
+    # def compare_and_extract_data(self):
+    #     if not self.line_ids:
+    #         raise ValidationError(_('There Is No Data To Match'))
+
+    #     if not self.selected_vpo_details:
+    #         raise ValidationError(_('Please select the VPO details before comparing and extracting data.'))
+
+    #     VPO = self.env['get_vpo_mas_lines']
+
+    #     missing_records_details = []
+    #     all_lines_success = True
+
+    #     # Iterate through existing records and update values
+    #     for existing_record in self.line_ids:
+    #         # Find data based on matching criteria
+    #         data = VPO.search([
+    #             ('po_number', '=', existing_record.po_number),
+    #             ('size_lv', '=', existing_record.grid_value),
+    #             ('style', '=', existing_record.customer_style),
+    #         ])
+
+    #         new_values = self._extract_po_line_values(data, existing_record.color_code_2)
+
+    #         if not self.color_code_2:
+    #             raise ValidationError(_('Color Code Missing.'))
+
+    #         if new_values:
+    #             existing_record.write(dict(new_values))
+    #         else:
+    #             missing_records_details.append({
+    #                 'line_number': existing_record.line_number,
+    #                 'details': {
+    #                     'PoNumber': existing_record.po_number,
+    #                     'Size': existing_record.grid_value,
+    #                     'Style': existing_record.customer_style,
+    #                     'ColorCode': existing_record.color_code_2,
+    #                 },
+    #                 'reason': 'For This Po Records Matching criteria not found in VPO.',
+    #             })
+    #             all_lines_success = False
+    #     # Update the matching status on the header record
+    #     if all_lines_success:
+    #         self.matching_status = 'Success'
+    #     else:
+    #         self.matching_status = 'Fail'
+
+    #     if missing_records_details:
+    #         error_message = "Data not transferred for the following line numbers:\n"
+    #         for record_details in missing_records_details:
+    #             error_message += (
+    #                 f"Line Number: {record_details['line_number']}, "
+    #                 f"Details: {record_details['details']}, "
+    #                 f"Reason: {record_details['reason']}\n"
+    #             )
+
+    #         raise UserError(error_message)
+
+    #     # Display success message and reload the view
+    #     message = _("Data fetched and updated successfully.")
+    #     return {
+    #         'type': 'ir.actions.client',
+    #         'tag': 'display_notification',
+    #         'params': {
+    #             'message': message,
+    #             'type': 'success',
+    #             'sticky': True,
+    #             'next': {
+    #                 'type': 'ir.actions.client',
+    #                 'tag': 'reload',
+    #             }
+    #         }
+    #     }
+
     def compare_and_extract_data(self):
-        if not self.line_ids:
+        if not self.line_ids and not self.line_ids_main_lable and not self.line_ids_care_lable and not self.line_ids_price_tkt:
             raise ValidationError(_('There Is No Data To Match'))
 
         if not self.selected_vpo_details:
@@ -584,39 +742,46 @@ class GetPo(models.Model):
         missing_records_details = []
         all_lines_success = True
 
-        # Iterate through existing records and update values
-        for existing_record in self.line_ids:
-            # Find data based on matching criteria
-            data = VPO.search([
-                ('po_number', '=', existing_record.po_number),
-                ('size_lv', '=', existing_record.grid_value),
-                ('style', '=', existing_record.customer_style),
-            ])
+        # Define the tables to iterate through
+        line_tables = [
+            ('line_ids', 'get_po_mas_lines'),
+            ('line_ids_main_lable', 'get_po_mas_lines_main_lable'),
+            ('line_ids_care_lable', 'get_po_mas_lines_care_lable'),
+            ('line_ids_price_tkt', 'get_po_mas_lines_price_tkt')
+        ]
 
-            new_values = self._extract_po_line_values(data, existing_record.color_code_2)
+        # Iterate through each line table and perform the matching
+        for line_table, model_name in line_tables:
+            for existing_record in self[line_table]:
+                # Find data based on matching criteria
+                data = VPO.search([
+                    ('po_number', '=', existing_record.po_number),
+                    ('size_lv', '=', existing_record.grid_value),
+                    ('style', '=', existing_record.customer_style),
+                ])
 
-            if not self.color_code_2:
-                raise ValidationError(_('Color Code Missing.'))
+                new_values = self._extract_po_line_values(data, existing_record.color_code_2)
 
-            if new_values:
-                existing_record.write(dict(new_values))
-            else:
-                missing_records_details.append({
-                    'line_number': existing_record.line_number,
-                    'details': {
-                        'PoNumber': existing_record.po_number,
-                        'Size': existing_record.grid_value,
-                        'Style': existing_record.customer_style,
-                        'ColorCode': existing_record.color_code_2,
-                    },
-                    'reason': 'For This Po Records Matching criteria not found in VPO.',
-                })
-                all_lines_success = False
+                if not existing_record.color_code_2:
+                    raise ValidationError(_('Color Code Missing.'))
+
+                if new_values:
+                    existing_record.write(dict(new_values))
+                else:
+                    missing_records_details.append({
+                        'line_number': existing_record.line_number,
+                        'details': {
+                            'PoNumber': existing_record.po_number,
+                            'Size': existing_record.grid_value,
+                            'Style': existing_record.customer_style,
+                            'ColorCode': existing_record.color_code_2,
+                        },
+                        'reason': f'For this PO, records matching criteria not found in {model_name}.',
+                    })
+                    all_lines_success = False
+
         # Update the matching status on the header record
-        if all_lines_success:
-            self.matching_status = 'Success'
-        else:
-            self.matching_status = 'Fail'
+        self.matching_status = 'Success' if all_lines_success else 'Fail'
 
         if missing_records_details:
             error_message = "Data not transferred for the following line numbers:\n"
@@ -644,7 +809,7 @@ class GetPo(models.Model):
                 }
             }
         }
-            
+
     def _extract_po_line_values(self, data, existing_color_code):
         # Extract and return values for each record in data
         new_values = {}
@@ -666,11 +831,40 @@ class GetPo(models.Model):
                 # Check if all specified fields are non-empty
                 if record.sku and record.article:
                     success_flag = True
+                    self.update({'state': 'Matched'})
 
         if not success_flag:
             return None
 
         return new_values
+            
+    # def _extract_po_line_values(self, data, existing_color_code):
+    #     # Extract and return values for each record in data
+    #     new_values = {}
+    #     success_flag = False  # Flag to indicate if any record meets the conditions
+
+    #     for record in data:
+    #         # Check if the color code matches
+    #         if record.cc == existing_color_code:
+    #             # Update new_values dictionary
+    #             new_values.update({
+    #                 'sku': record.sku,
+    #                 'article_num': record.article,
+    #                 'retail_usd': record.retail_usd,
+    #                 'retail_cad': record.retail_cad,
+    #                 'retail_gbp': record.retail_gbp,
+    #                 'size_id': record.size
+    #             })
+
+    #             # Check if all specified fields are non-empty
+    #             if record.sku and record.article:
+    #                 success_flag = True
+    #                 self.update({'state': 'Matched'})
+
+    #     if not success_flag:
+    #         return None
+
+    #     return new_values
 
 
     # RFID Posting

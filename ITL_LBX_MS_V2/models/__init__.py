@@ -19,3 +19,4 @@ from . import CompositionMaster
 from . import CareInstructionSetCodeMaster
 from . import AdditionalInstructionMaster
 from . import Dashboard
+from . import AdditionalCareInstructionMaster

@@ -30,6 +30,7 @@
         'views/Dashboard.xml',
         'wizard/RfidPopUpWizard.xml',
         'wizard/RfidPopUpWizardForm.xml',
+        'views/AdditionalCareInstructionMaster.xml',
         
     ],
     'assets': {

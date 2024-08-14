@@ -1,21 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="action_rfid_response_wizard" model="ir.actions.act_window">
-        <field name="name">RFID Response Wizard</field>
-        <field name="res_model">rfid.response.wizard</field>
-        <field name="view_mode">form</field>
-        <field name="view_id" ref="ITL_LBX_MS_V2.view_rfid_response_wizard_form"/>
-        <field name="target">new</field>
-    </record>
-
     <record id="view_rfid_response_wizard_form" model="ir.ui.view">
         <field name="name">rfid.response.wizard.form</field>
         <field name="model">rfid.response.wizard</field>
         <field name="arch" type="xml">
-            <form string="RFID Response">
-                <group>
-                    <field name="response_content" readonly="1"/>
-                </group>
+            <form string="RFID" class="custom-wizard-size" style="height: 400px; overflow-y: auto; font-family: monospace; white-space: pre-wrap; padding: 10px;">
+                <script>
+                    $(document).ready(function() {
+                        $('.modal-dialog').css({'max-width': '497px'});
+                        $('.modal-content').css({'max-height': '100%'});
+                    });
+                </script>
+                <field name="response_content" nolabel="1" readonly="1"/>
                 <footer>
                     <button string="Close" class="btn-primary" type="object" name="action_close"/>
                 </footer>

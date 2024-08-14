@@ -207,6 +207,11 @@ class GetPoLines(models.Model):
             else:
                 record.date_of_manufacture_last_four_letters = ''
 
+    additional_care_instruction = fields.Char(string="Additional Care Instruction" , related="header_table.additional_care_instruction_name", store=True)
+    vss_no = fields.Char(string="Vss")
+    vsd_style_6 = fields.Char(string="Vsd Style 6")
+    vsd_style_9 = fields.Char(string="Vsd Style 9")
+
 
 
 # Main lable
@@ -417,6 +422,10 @@ class GetPoLinesMainLable(models.Model):
             else:
                 record.date_of_manufacture_last_four_letters = ''
 
+    additional_care_instruction = fields.Char(string="Additional Care Instruction" , related="header_table.additional_care_instruction_name", store=True)
+    vss_no = fields.Char(string="Vss")
+    vsd_style_6 = fields.Char(string="Vsd Style 6")
+    vsd_style_9 = fields.Char(string="Vsd Style 9")
 
 # Care Lable
 class GetPoLinesCareLable(models.Model):
@@ -626,6 +635,11 @@ class GetPoLinesCareLable(models.Model):
             else:
                 record.date_of_manufacture_last_four_letters = ''
 
+    additional_care_instruction = fields.Char(string="Additional Care Instruction" , related="header_table.additional_care_instruction_name", store=True)
+    vss_no = fields.Char(string="Vss")
+    vsd_style_6 = fields.Char(string="Vsd Style 6")
+    vsd_style_9 = fields.Char(string="Vsd Style 9")
+
 
 class GetPoLinesPriceTkt(models.Model):
     _name = 'get_po_mas_lines_price_tkt'
@@ -833,3 +847,8 @@ class GetPoLinesPriceTkt(models.Model):
                     record.date_of_manufacture_last_four_letters = month + year
             else:
                 record.date_of_manufacture_last_four_letters = ''
+
+    additional_care_instruction = fields.Char(string="Additional Care Instruction" , related="header_table.additional_care_instruction_name", store=True)
+    vss_no = fields.Char(string="Vss")
+    vsd_style_6 = fields.Char(string="Vsd Style 6")
+    vsd_style_9 = fields.Char(string="Vsd Style 9")

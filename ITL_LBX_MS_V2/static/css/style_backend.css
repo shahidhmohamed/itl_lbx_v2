@@ -205,7 +205,5 @@
 }
 
 .order-card:hover .h1 {
-  color: var(
-    --hover-color
-  ); /* Assuming you have a CSS variable for hover color */
+  color: var(--hover-color);
 }
