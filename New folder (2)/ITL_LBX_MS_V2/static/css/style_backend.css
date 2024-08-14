@@ -1,0 +1,209 @@
+/* Primary color */
+:root {
+  --primary-color: #043553;
+  --hover-color: #ffda33; /* Yellow color for hover effects */
+}
+
+/* Navbar styles */
+.o_main_navbar {
+  background-color: var(--primary-color);
+  border-bottom: 1px solid var(--primary-color);
+  position: relative;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Added shadow effect */
+}
+
+.o_main_navbar > a:hover,
+.o_main_navbar > a:focus,
+.o_main_navbar > button:hover,
+.o_main_navbar > button:focus,
+.o_main_navbar .show .dropdown-toggle {
+  background-color: var(--primary-color);
+}
+
+/* Search view facet */
+.o_searchview .o_searchview_facet .o_searchview_facet_label {
+  background-color: var(--primary-color);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Added shadow effect */
+}
+
+/* Primary button styles */
+.btn-primary {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Added shadow effect */
+}
+
+.btn-primary:hover {
+  background-color: #1634b9;
+  border-color: #1634b9;
+}
+
+/* Custom buttons */
+.btn-lbx {
+  background-color: var(--primary-color);
+  color: aliceblue;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Added shadow effect */
+}
+
+.btn-lbx:hover {
+  background-color: #149635;
+  color: aliceblue;
+}
+
+.btn_delete_lbx {
+  color: aliceblue;
+  background-color: #dc3545;
+  color: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Added shadow effect */
+}
+
+.btn_delete_lbx:hover {
+  background-color: #b31127;
+  border-color: #b31127;
+  color: aliceblue;
+}
+
+.btn_match_lbx {
+  color: aliceblue;
+  background-color: #ced11c;
+  color: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Added shadow effect */
+}
+
+.btn_match_lbx:hover {
+  background-color: #b38d11;
+  color: aliceblue;
+}
+
+/* Custom button styles */
+.btn-custom {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  font-size: 14px;
+  line-height: 1.2;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Added shadow effect */
+}
+
+.btn-custom .btn-content {
+  text-align: center;
+}
+
+.btn-custom .btn-content i {
+  font-size: 24px;
+  margin-bottom: 5px;
+}
+
+.btn-custom .btn-label {
+  display: block;
+  font-size: 14px;
+}
+
+/* Card styles with hover effect */
+.custom-card {
+  transition: all 0.3s ease-in-out;
+}
+
+.custom-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  background-color: #f0f0f0;
+  border: 1px solid #d0d0d0;
+}
+
+.custom-card .main-value {
+  font-size: 3rem;
+  color: #333;
+  transition: color 0.3s ease-in-out;
+}
+
+.custom-card:hover .main-value {
+  color: var(--hover-color);
+}
+
+.custom-card .icon {
+  font-size: 1.5rem;
+  color: #666;
+  transition: color 0.3s ease-in-out;
+}
+
+.custom-card:hover .icon {
+  color: var(--hover-color);
+}
+
+.custom-card .label {
+  font-size: 1.25rem;
+  color: #666;
+  transition: color 0.3s ease-in-out;
+}
+
+.custom-card:hover .label {
+  color: var(--hover-color);
+}
+
+/* CSS for the logo */
+.dashboard-logo {
+  width: 70px;
+  height: 50px;
+  margin-right: 10px;
+}
+
+/* Header styles with hover underline */
+.dashboard-header {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease-in-out;
+  border: 1px solid #e0e0e0;
+  background-color: #f8f9fa;
+  position: relative;
+}
+
+.dashboard-header h1 {
+  font-size: 2rem;
+  color: var(--primary-color);
+  margin: 0;
+  position: relative;
+  display: inline-block;
+  padding-bottom: 5px;
+}
+
+.dashboard-header h1::after {
+  content: "";
+  position: absolute;
+  width: 0;
+  height: 2px;
+  display: block;
+  margin-top: 5px;
+  right: 0;
+  background: var(--hover-color);
+  transition: width 0.3s ease;
+}
+
+.dashboard-header:hover h1::after {
+  width: 100%;
+  left: 0;
+}
+
+/* Card styles with hover effect */
+.order-card {
+  transition: all 0.3s ease-in-out;
+  cursor: pointer;
+}
+
+.order-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  background-color: #f0f0f0;
+  border-color: #d0d0d0;
+}
+
+.order-card .h1 {
+  transition: color 0.3s ease-in-out;
+}
+
+.order-card:hover .h1 {
+  color: var(--hover-color);
+}

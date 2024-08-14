@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_size_master" model="ir.actions.act_window">
+        <field name="name">Size Master</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">size_master</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Start of Tree View -->
+    <record id = "size_master_tree" model = "ir.ui.view">
+        <field name = "name">Size Master</field>
+        <field name = "model">size_master</field>
+        <field name = "arch" type = "xml">
+            <tree editable="bottom">
+                <field name = "size_id"/>
+                <field name = "size"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id = "size_master_search" model = "ir.ui.view">
+        <field name = "name">Size Master</field>
+        <field name = "model">size_master</field>
+        <field name = "arch" type = "xml">
+            <search>
+                <field name = "size_id" string="SIZE ID"/>
+                <field name = "size" string="SIZE"/>
+            </search>
+        </field>
+    </record>
+
+    <menuitem id="master_files" name="Master Files" parent ="automation_root_2" sequence="20" />
+    <menuitem id="menu_items_size" name="Size" parent ="master_files" sequence="30" />
+    <menuitem id="size_master" name="Size Master" parent ="menu_items_size" action = "action_size_master" sequence="40" />
+
+
+</odoo>

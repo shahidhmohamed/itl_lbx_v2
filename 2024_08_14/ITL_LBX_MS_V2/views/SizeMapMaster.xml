@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_range_master" model="ir.actions.act_window">
+        <field name="name">Size Range Mapping</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">size_mapping_main</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Form View -->
+    <record id="size_range_form" model="ir.ui.view">
+        <field name="name">Size Range Mapping</field>
+        <field name="model">size_mapping_main</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="Size_Range"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Size" name="size">
+                            <field name="size_lines">
+                                <tree editable="bottom">
+                                    <field name="Size"/>
+                                    <field name="Size_LV"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Tree View -->
+    <record id="size_range_map_tree" model="ir.ui.view">
+        <field name="name">Size Range Mapping</field>
+        <field name="model">size_mapping_main</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="Size_Range"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="size_map_search" model="ir.ui.view">
+        <field name="name">Size Range Mapping</field>
+        <field name="model">size_mapping_main</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="Size_Range" string="SIZE RANGE"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Menu Item -->
+    <menuitem id="size_map_master" name="Size Mapping" parent="menu_items_size" action="action_range_master" sequence="60"/>
+</odoo>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <div t-name="Itl.Dashboard" owl="1" class="">
+        <div class="vh-100 overflow-auto bg-muted">
+            <div class="row m-3">
+                <div class="col-lg-7">
+                    <div class="row">
+                        <div class="col m-0 p-0">
+                            <div class="shadow-lg rounded-lg bg-white p-4 mb-4 dashboard-header hover-effect">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center">
+                                        <img src="/ITL_LBX_MS_V2/static/description/icon.png" alt="ITL Logo" class="dashboard-logo mr-2"/>
+                                        <h1 class="fw-bold text-3xl">Dashboard</h1>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <ItlCard done="purchase_order_count.all_purchase_order" label="'Total Orders'"/>
+                        <ItlCard done="purchase_order_count.open" label="'Open Orders'"/>
+                        <ItlCard done="purchase_order_count.done" label="'Success Orders'"/>
+                        <ItlCard done="purchase_order_count.cancelled" label="'Cancelled Orders'"/>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6 m-0 p-0">
+                            <div class="shadow-sm border m-2 p-4 bg-white">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <h3 class="info fw-bold">Order Status</h3>
+                                    <div class="px-3 py-1 cursor-pointer">
+                                        <span class="fa fa-arrow-right text-white"/>
+                                    </div>
+                                </div>
+                                <ChartRenderer success="purchase_order_count.done" cancelled="purchase_order_count.cancelled" open="purchase_order_count.open" all="purchase_order_count.all_purchase_order" title="'Order Status'" type="'doughnut'"/>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 m-0 p-0">
+                            <div class="shadow-sm border m-2 p-4 bg-white">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <h3 class="info fw-bold">Order Status</h3>
+                                    <div class="px-3 py-1 cursor-pointer">
+                                        <span class="fa fa-arrow-right text-white"/>
+                                    </div>
+                                </div>
+                                <ChartRenderer success="purchase_order_count.done" cancelled="purchase_order_count.cancelled" open="purchase_order_count.open" all="purchase_order_count.all_purchase_order" title="'Order Status'" type="'bar'"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- This column will be aligned to the right side -->
+                <div class="col-lg-5 ml-auto">
+                    <div class="row">
+                        <PoCard done="purchase_order_count.rfid_count" label="'RFID'"/>
+                        <PoCard done="purchase_order_count.care_labels_count" label="'CARE LABELS'"/>
+                        <PoCard done="purchase_order_count.main_lable_count" label="'MAIN LABELS'"/>
+                        <PoCard done="purchase_order_count.price_tkt_count" label="'PRICE TKT'"/>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6 m-0 p-0">
+                            <div class="shadow-sm border m-2 p-4 bg-white">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <h3 class="info fw-bold">Purchase Order Types</h3>
+                                    <div class="px-3 py-1 bg-muted cursor-pointer">
+                                        <span class="fa fa-arrow-right text-white"/>
+                                    </div>
+                                </div>
+                                <PoChartRenderer rfid="purchase_order_count.rfid_count" main_lable="purchase_order_count.main_lable_count" care_lable="purchase_order_count.care_labels_count" price_tkt="purchase_order_count.price_tkt_count" title="'Purchase Order Types'" type="'line'" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <OrderDetails data="purchase_order_count.today_order_count" label="'Todays Orders'"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</templates>

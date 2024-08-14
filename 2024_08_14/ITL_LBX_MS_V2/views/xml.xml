@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PurchaseOrders>
+    <PurchaseOrder>
+        <PurchaseOrderNumber>4502205835</PurchaseOrderNumber>
+        <PurchaseOrderVersion>0 </PurchaseOrderVersion>
+        <PurchaseOrderDate>2024-07-31</PurchaseOrderDate>
+        <LastRevisionDate>2024-07-31</LastRevisionDate>
+        <Currency>USD</Currency>
+        <ConsigneeName>Unichela Pvt Ltd.</ConsigneeName>
+        <ConsigneeName2/>
+        <ConsigneeName3/>
+        <ConsigneeAdd1>Horana Road</ConsigneeAdd1>
+        <ConsigneeAdd2>Panadura,Sri Lanka</ConsigneeAdd2>
+        <ContactPerson>LAHIRUDH</ContactPerson>
+        <ContactTel>+94761912323</ContactTel>
+        <ContactEMail>lahirudh@masholdings.com</ContactEMail>
+        <SalesPer/>
+        <SupplierName>INTERNATIONAL TRIMMINGS &amp; LABE</SupplierName>
+        <SupplierAdd1>THALAWATHUGODA, BATTARAMU</SupplierAdd1>
+        <SupplierAdd2>272D, Hokandara Road, Dickland</SupplierAdd2>
+        <SupplierTel>114404979</SupplierTel>
+        <SupplierFax>114404978</SupplierFax>
+        <BillToName>Unichela Pvt Ltd.</BillToName>
+        <BillToName2/>
+        <BillToName3/>
+        <BillToAdd1>Horana Road</BillToAdd1>
+        <BillToAdd2>Panadura,Sri Lanka</BillToAdd2>
+        <NotifyName>Unichela Pvt Ltd</NotifyName>
+        <NotifyName2>Unichela Linea Clothing - Pallekele</NotifyName2>
+        <NotifyName3/>
+        <NotifyAdd1>Kandy Industrial Park</NotifyAdd1>
+        <NotifyAdd2>Pallekele,Sri Lanka</NotifyAdd2>
+        <Season/>
+        <CusField1/>
+        <CusField2/>
+        <EndBuyerAccnt>Pink</EndBuyerAccnt>
+        <EndBuyer>VICTORIA&apos;S SECRET PINK STORES</EndBuyer>
+        <IncoTerms>FOB</IncoTerms>
+        <IncoTermDesc>SRI LANKA</IncoTermDesc>
+        <PaymentMode>Within 60 days Due net</PaymentMode>
+        <DeliveryAddressCode>A058</DeliveryAddressCode>
+        <DeliveryAddress>LC Kandy Industrial</DeliveryAddress>
+        <HeaderText/>
+        <HeaderNote/>
+        <OrderMode/>
+        <CompanyCode>A050</CompanyCode>
+        <InitialReleaseDate>2024-07-31</InitialReleaseDate>
+        <InitialReleaseTime>15:45:15</InitialReleaseTime>
+        <FinalReleaseDate>2024-07-31</FinalReleaseDate>
+        <FinalReleaseTime>15:45:15</FinalReleaseTime>
+        <LineItems>
+            <LineItem>
+                <PurchaseOrderItem>00010</PurchaseOrderItem>
+                <MaterialCode>3000630552</MaterialCode>
+                <VendorMaterial/>
+                <ColorCode>11255905</ColorCode>
+                <RefMaterial>LB5808</RefMaterial>
+                <RefMaterial2>LB5808</RefMaterial2>
+                <ItemText/>
+                <MatPoText/>
+                <PageFormat/>
+                <MaterialDescription>TKT LB5808 11255905 0HF0</MaterialDescription>
+                <SalesOrder>1001208295</SalesOrder>
+                <SalesOrderItem>000010</SalesOrderItem>
+                <DeliveryDate>2024-10-23</DeliveryDate>
+                <Quantity>979.000 </Quantity>
+                <UOM>PC</UOM>
+                <NetPrice>6.30 </NetPrice>
+                <Per>1000 </Per>
+                <DiscountPercentage/>
+                <DiscountValue/>
+                <NetValue>6.17 </NetValue>
+                <Text>TKT LB5808 11255905 0HF0</Text>
+                <ProductType>PAC0006</ProductType>
+                <Gender/>
+                <OrderReason/>
+                <GarmentType/>
+                <PTLcode>0HF0</PTLcode>
+                <ShipMode>Truck</ShipMode>
+                <SalesOrderSeason>Holiday 2024</SalesOrderSeason>
+                <BuyYear>0000</BuyYear>
+                <Brand/>
+                <DepartmentCode/>
+                <EmotionalSpace/>
+                <PlanningGroup/>
+                <CPO>5100482677</CPO>
+                <ExFactoryDate>2024-10-23</ExFactoryDate>
+                <CustomerStyle>242051</CustomerStyle>
+                <CustomerStyleDesc>PINK INTMTS PINK WITH A WINK EMB HG</CustomerStyleDesc>
+                <CustomerRef1>11255905</CustomerRef1>
+                <CustomerRef2>10242051</CustomerRef2>
+                <CustomerRef3/>
+                <FinishedGoodSeason>Holiday 2024</FinishedGoodSeason>
+                <FinishedGoodGender>WOMEN</FinishedGoodGender>
+                <FinishedGoodGarmentType>Cut &amp; Sew</FinishedGoodGarmentType>
+                <CustomerReference3/>
+                <SizeDimension/>
+                <BuyName/>
+                <MaterialNoUsedByVendor>LB5808</MaterialNoUsedByVendor>
+                <FinishingMethod/>
+                <WidthSizeTkt/>
+                <FinishedGoodsDestination/>
+                <FinishedGoodColorCode>0HF0</FinishedGoodColorCode>
+                <BOMText1_FabricDetails/>
+                <RetailerName>PINK BRIEF</RetailerName>
+                <DeliveryAddressCode/>
+                <DeliveryPlant/>
+                <DeliveryAddress/>
+                <MaterialSurcharge>0.00 </MaterialSurcharge>
+                <MatSurchargeCurrency/>
+                <ScheduleLines>
+                    <ScheduleLine>
+                        <ScheduleLineNo>0001</ScheduleLineNo>
+                        <GridValue>L</GridValue>
+                        <DeliveryDate>2024-10-23</DeliveryDate>
+                        <SalesOrder>1001208295</SalesOrder>
+                        <OverDeliveryTolerance>0.0 </OverDeliveryTolerance>
+                        <UnderDeleveryTol>0.0 </UnderDeleveryTol>
+                        <Quantity>94.000 </Quantity>
+                        <NetPrice>6.30 </NetPrice>
+                        <NetValue>0.59 </NetValue>
+                        <VenorMaterialCode/>
+                        <ExFactoryDate>0000-00-00</ExFactoryDate>
+                        <additionalskuno/>
+                        <FG_Size/>
+                    </ScheduleLine>
+                    <ScheduleLine>
+                        <ScheduleLineNo>0002</ScheduleLineNo>
+                        <GridValue>M</GridValue>
+                        <DeliveryDate>2024-10-23</DeliveryDate>
+                        <SalesOrder/>
+                        <OverDeliveryTolerance>0.0 </OverDeliveryTolerance>
+                        <UnderDeleveryTol>0.0 </UnderDeleveryTol>
+                        <Quantity>401.000 </Quantity>
+                        <NetPrice>6.30 </NetPrice>
+                        <NetValue>2.53 </NetValue>
+                        <VenorMaterialCode/>
+                        <ExFactoryDate>0000-00-00</ExFactoryDate>
+                        <additionalskuno/>
+                        <FG_Size/>
+                    </ScheduleLine>
+                    <ScheduleLine>
+                        <ScheduleLineNo>0003</ScheduleLineNo>
+                        <GridValue>S</GridValue>
+                        <DeliveryDate>2024-10-23</DeliveryDate>
+                        <SalesOrder/>
+                        <OverDeliveryTolerance>0.0 </OverDeliveryTolerance>
+                        <UnderDeleveryTol>0.0 </UnderDeleveryTol>
+                        <Quantity>377.000 </Quantity>
+                        <NetPrice>6.30 </NetPrice>
+                        <NetValue>2.38 </NetValue>
+                        <VenorMaterialCode/>
+                        <ExFactoryDate>0000-00-00</ExFactoryDate>
+                        <additionalskuno/>
+                        <FG_Size/>
+                    </ScheduleLine>
+                    <ScheduleLine>
+                        <ScheduleLineNo>0004</ScheduleLineNo>
+                        <GridValue>XS</GridValue>
+                        <DeliveryDate>2024-10-23</DeliveryDate>
+                        <SalesOrder/>
+                        <OverDeliveryTolerance>0.0 </OverDeliveryTolerance>
+                        <UnderDeleveryTol>0.0 </UnderDeleveryTol>
+                        <Quantity>107.000 </Quantity>
+                        <NetPrice>6.30 </NetPrice>
+                        <NetValue>0.67 </NetValue>
+                        <VenorMaterialCode/>
+                        <ExFactoryDate>0000-00-00</ExFactoryDate>
+                        <additionalskuno/>
+                        <FG_Size/>
+                    </ScheduleLine>
+                </ScheduleLines>
+            </LineItem>
+            <LineItem>
+                <PurchaseOrderItem>00020</PurchaseOrderItem>
+                <MaterialCode>3000630551</MaterialCode>
+                <VendorMaterial/>
+                <ColorCode>11255903</ColorCode>
+                <RefMaterial>LB5808</RefMaterial>
+                <RefMaterial2>LB5808</RefMaterial2>
+                <ItemText/>
+                <MatPoText/>
+                <PageFormat/>
+                <MaterialDescription>TKT LB5808 11255903 0HF0</MaterialDescription>
+                <SalesOrder>1001208294</SalesOrder>
+                <SalesOrderItem>000010</SalesOrderItem>
+                <DeliveryDate>2024-10-09</DeliveryDate>
+                <Quantity>881.000 </Quantity>
+                <UOM>PC</UOM>
+                <NetPrice>6.30 </NetPrice>
+                <Per>1000 </Per>
+                <DiscountPercentage/>
+                <DiscountValue/>
+                <NetValue>5.55 </NetValue>
+                <Text>TKT LB5808 11255903 0HF0</Text>
+                <ProductType>PAC0006</ProductType>
+                <Gender/>
+                <OrderReason/>
+                <GarmentType/>
+                <PTLcode>0HF0</PTLcode>
+                <ShipMode>Truck</ShipMode>
+                <SalesOrderSeason>Holiday 2024</SalesOrderSeason>
+                <BuyYear>0000</BuyYear>
+                <Brand/>
+                <DepartmentCode/>
+                <EmotionalSpace/>
+                <PlanningGroup/>
+                <CPO>5100482676</CPO>
+                <ExFactoryDate>2024-10-09</ExFactoryDate>
+                <CustomerStyle>242053</CustomerStyle>
+                <CustomerStyleDesc>PINK INTMTS PINK WITH A WINK EMB HI</CustomerStyleDesc>
+                <CustomerRef1>11255903</CustomerRef1>
+                <CustomerRef2>10242053</CustomerRef2>
+                <CustomerRef3/>
+                <FinishedGoodSeason>Holiday 2024</FinishedGoodSeason>
+                <FinishedGoodGender>WOMEN</FinishedGoodGender>
+                <FinishedGoodGarmentType>Cut &amp; Sew</FinishedGoodGarmentType>
+                <CustomerReference3/>
+                <SizeDimension/>
+                <BuyName/>
+                <MaterialNoUsedByVendor>LB5808</MaterialNoUsedByVendor>
+                <FinishingMethod/>
+                <WidthSizeTkt/>
+                <FinishedGoodsDestination/>
+                <FinishedGoodColorCode>0HF0</FinishedGoodColorCode>
+                <BOMText1_FabricDetails/>
+                <RetailerName>PINK BRIEF</RetailerName>
+                <DeliveryAddressCode/>
+                <DeliveryPlant/>
+                <DeliveryAddress/>
+                <MaterialSurcharge>0.00 </MaterialSurcharge>
+                <MatSurchargeCurrency/>
+                <ScheduleLines>
+                    <ScheduleLine>
+                        <ScheduleLineNo>0001</ScheduleLineNo>
+                        <GridValue>L</GridValue>
+                        <DeliveryDate>2024-10-09</DeliveryDate>
+                        <SalesOrder>1001208294</SalesOrder>
+                        <OverDeliveryTolerance>0.0 </OverDeliveryTolerance>
+                        <UnderDeleveryTol>0.0 </UnderDeleveryTol>
+                        <Quantity>199.000 </Quantity>
+                        <NetPrice>6.30 </NetPrice>
+                        <NetValue>1.25 </NetValue>
+                        <VenorMaterialCode/>
+                        <ExFactoryDate>0000-00-00</ExFactoryDate>
+                        <additionalskuno/>
+                        <FG_Size/>
+                    </ScheduleLine>
+                    <ScheduleLine>
+                        <ScheduleLineNo>0002</ScheduleLineNo>
+                        <GridValue>M</GridValue>
+                        <DeliveryDate>2024-10-09</DeliveryDate>
+                        <SalesOrder/>
+                        <OverDeliveryTolerance>0.0 </OverDeliveryTolerance>
+                        <UnderDeleveryTol>0.0 </UnderDeleveryTol>
+                        <Quantity>396.000 </Quantity>
+                        <NetPrice>6.30 </NetPrice>
+                        <NetValue>2.49 </NetValue>
+                        <VenorMaterialCode/>
+                        <ExFactoryDate>0000-00-00</ExFactoryDate>
+                        <additionalskuno/>
+                        <FG_Size/>
+                    </ScheduleLine>
+                    <ScheduleLine>
+                        <ScheduleLineNo>0003</ScheduleLineNo>
+                        <GridValue>S</GridValue>
+                        <DeliveryDate>2024-10-09</DeliveryDate>
+                        <SalesOrder/>
+                        <OverDeliveryTolerance>0.0 </OverDeliveryTolerance>
+                        <UnderDeleveryTol>0.0 </UnderDeleveryTol>
+                        <Quantity>236.000 </Quantity>
+                        <NetPrice>6.30 </NetPrice>
+                        <NetValue>1.49 </NetValue>
+                        <VenorMaterialCode/>
+                        <ExFactoryDate>0000-00-00</ExFactoryDate>
+                        <additionalskuno/>
+                        <FG_Size/>
+                    </ScheduleLine>
+                    <ScheduleLine>
+                        <ScheduleLineNo>0004</ScheduleLineNo>
+                        <GridValue>XL</GridValue>
+                        <DeliveryDate>2024-10-09</DeliveryDate>
+                        <SalesOrder/>
+                        <OverDeliveryTolerance>0.0 </OverDeliveryTolerance>
+                        <UnderDeleveryTol>0.0 </UnderDeleveryTol>
+                        <Quantity>11.000 </Quantity>
+                        <NetPrice>6.30 </NetPrice>
+                        <NetValue>0.07 </NetValue>
+                        <VenorMaterialCode/>
+                        <ExFactoryDate>0000-00-00</ExFactoryDate>
+                        <additionalskuno/>
+                        <FG_Size/>
+                    </ScheduleLine>
+                    <ScheduleLine>
+                        <ScheduleLineNo>0005</ScheduleLineNo>
+                        <GridValue>XS</GridValue>
+                        <DeliveryDate>2024-10-09</DeliveryDate>
+                        <SalesOrder/>
+                        <OverDeliveryTolerance>0.0 </OverDeliveryTolerance>
+                        <UnderDeleveryTol>0.0 </UnderDeleveryTol>
+                        <Quantity>39.000 </Quantity>
+                        <NetPrice>6.30 </NetPrice>
+                        <NetValue>0.25 </NetValue>
+                        <VenorMaterialCode/>
+                        <ExFactoryDate>0000-00-00</ExFactoryDate>
+                        <additionalskuno/>
+                        <FG_Size/>
+                    </ScheduleLine>
+                </ScheduleLines>
+            </LineItem>
+        </LineItems>
+    </PurchaseOrder>
+</PurchaseOrders>

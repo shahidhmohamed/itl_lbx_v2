@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_components_master" model="ir.actions.act_window">
+        <field name="name">Component Master</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">components_master</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+
+    <!-- Start of Tree View -->
+    <record id = "components_master_tree" model = "ir.ui.view">
+        <field name = "name">Component Master</field>
+        <field name = "model">components_master</field>
+        <field name = "arch" type = "xml">
+            <tree>
+                <field name = "ComponentName"/>
+            </tree>
+        </field>
+    </record>
+    <!-- End of Tree View -->
+
+    <menuitem id="component_master" name="Component Master" parent ="composition_masters" action = "action_components_master" sequence="150" />
+
+</odoo>

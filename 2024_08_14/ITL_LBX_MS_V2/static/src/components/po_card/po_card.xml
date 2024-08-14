@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates>
+    <t t-name="Po.Card" owl="1">
+        <div class="col-lg-3 m-0 p-0">
+            <div class="shadow-sm border m-0 p-1 bg-yellow po-card">
+                <div class="main-value">
+                    0000<span t-esc="props.done"/>
+                </div>
+                <div class="label">
+                    <span>
+                        <span t-esc="props.label"/>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>
