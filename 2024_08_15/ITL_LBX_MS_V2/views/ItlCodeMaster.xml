@@ -1,0 +1,25 @@
+<odoo>
+    <record id="action_sub_itl_code" model="ir.actions.act_window">
+        <field name="name">Itl Code</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">itl_code</field>
+        <field name="view_mode">tree</field>
+    </record>
+
+
+    <!-- Start of Tree View -->
+    <record id = "itl_code_01_tree" model = "ir.ui.view">
+        <field name = "name">Itl Code</field>
+        <field name = "model">itl_code</field>
+        <field name = "arch" type = "xml">
+            <tree editable="bottom">
+                <field name = "ItlCode"/>
+                <field name = "ItlCode_Name"/>
+            </tree>
+        </field>
+    </record>
+    <!-- End of Tree View -->
+
+    <menuitem id="itl_code_master" name="Itl Code Master" parent ="master_files" action = "action_sub_itl_code" sequence="20" />
+
+</odoo>

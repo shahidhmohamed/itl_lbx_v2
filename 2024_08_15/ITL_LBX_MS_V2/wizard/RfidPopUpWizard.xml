@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_rfid_response_wizard" model="ir.actions.act_window">
+        <field name="name">RFID Response Wizard</field>
+        <field name="res_model">rfid.response.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="ITL_LBX_MS_V2.view_rfid_response_wizard_form" />
+        <field name="target">new</field>
+    </record>
+</odoo>

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <templates>
-    <t t-name="Po.Card" owl="1">
+    <t t-name="Itl.Card" owl="1">
         <div class="col-lg-3 m-0 p-0">
-            <div class="shadow-lg rounded-lg bg-white text-center p-4 mb-4 m-1 custom-card">
+            <div class="shadow-lg rounded-lg bg-white text-center p-4 mb-4 custom-card">
                 <!-- Main value display -->
                 <div class="main-value mb-3 font-bold">
-                    <span t-attf-class="text-#{ props.done > 0 ? 'info':'danger' }">
-                        <t t-esc="props.done"/>
+                    <span t-attf-class="text-#{ props.done > 0 ? 'black':'danger' }">
+                        00<t t-esc="props.done"/>
                     </span>
                 </div>
                 <!-- Icon and label -->
@@ -22,3 +22,6 @@
         </div>
     </t>
 </templates>
+
+
+

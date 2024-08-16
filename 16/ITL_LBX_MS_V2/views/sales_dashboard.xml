@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+        <record id="action_owl_sales_dashboard" model="ir.actions.client">
+            <field name="name">Sales Dashboard</field>
+            <field name="tag">owl.sales_dashboard</field>
+        </record>
+
+        <menuitem id="menu_owl_sales_dashboard" name="Dashboard" parent ="automation_root_2" sequence="10" action="action_owl_sales_dashboard"/>
+
+    </data>
+</odoo>

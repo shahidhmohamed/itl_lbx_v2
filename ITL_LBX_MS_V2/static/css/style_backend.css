@@ -103,118 +103,48 @@
   font-size: 14px;
 }
 
-/* Card styles with hover effect */
-.custom-card {
-  transition: all 0.3s ease-in-out;
+.dashboard-container {
+  background-color: rgb(13, 7, 49);
 }
 
-.custom-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  background-color: #f0f0f0;
-  border: 1px solid #d0d0d0;
-}
-
-.custom-card .main-value {
-  font-size: 3rem;
-  color: #333;
-  transition: color 0.3s ease-in-out;
-}
-
-.custom-card:hover .main-value {
-  color: var(--hover-color);
-}
-
-.custom-card .icon {
-  font-size: 1.5rem;
-  color: #666;
-  transition: color 0.3s ease-in-out;
-}
-
-.custom-card:hover .icon {
-  color: var(--hover-color);
-}
-
-.custom-card .label {
-  font-size: 1.25rem;
-  color: #666;
-  transition: color 0.3s ease-in-out;
-}
-
-.custom-card:hover .label {
-  color: var(--hover-color);
-}
-
-/* CSS for the logo */
-.dashboard-logo {
-  width: 70px;
-  height: 50px;
-  margin-right: 10px;
-}
-
-/* Header styles with hover underline */
-.dashboard-header {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease-in-out;
-  border: 1px solid #e0e0e0;
-  background-color: #f8f9fa;
-  position: relative;
-}
-
-.dashboard-header h1 {
-  font-size: 2rem;
-  color: var(--primary-color);
-  margin: 0;
-  position: relative;
-  display: inline-block;
-  padding-bottom: 5px;
-}
-
-.dashboard-header h1::after {
-  content: "";
-  position: absolute;
-  width: 0;
-  height: 2px;
-  display: block;
-  margin-top: 5px;
-  right: 0;
-  background: var(--hover-color);
-  transition: width 0.3s ease;
-}
-
-.dashboard-header:hover h1::after {
-  width: 100%;
-  left: 0;
-}
-
-/* Card styles with hover effect */
 .order-card {
   transition: all 0.3s ease-in-out;
-  cursor: pointer;
+  border-radius: 20px;
 }
 
 .order-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  background-color: #f0f0f0;
-  border-color: #d0d0d0;
 }
 
-.order-card .h1 {
-  transition: color 0.3s ease-in-out;
+.po-card-container {
+  margin-top: 85px;
 }
 
-.order-card:hover .h1 {
-  color: var(--hover-color);
+.order-card-container {
+  margin-top: 10px;
 }
 
-.btn-content {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px; /* Adjust the gap between the icon and text */
+.po-card {
+  transition: all 0.3s ease-in-out;
+  border-radius: 20px;
 }
 
-.btn-label {
-  margin-left: 5px; /* Optional: fine-tunes spacing between the icon and text */
+.po-card:hover {
+  transform: translateY(-5px);
+}
+
+.dashboard-header {
+  border-radius: 30px;
+}
+
+.order-chart {
+  border-radius: 20px;
+}
+
+.dashboard-logo {
+  width: 80px;
+  height: 60px;
+  margin-right: 10px;
+  margin-left: 5px;
+  border-radius: 20px;
 }

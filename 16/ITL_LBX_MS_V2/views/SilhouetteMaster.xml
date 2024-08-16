@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_silhouette_master" model="ir.actions.act_window">
+        <field name="name">Silhouette MASTER</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">silhouette_master</field>
+        <field name="view_mode">tree</field>
+    </record>
+
+
+    <!-- Start of Tree View -->
+    <record id = "silhouette_master_tree" model = "ir.ui.view">
+        <field name = "name">Silhouette MASTER</field>
+        <field name = "model">silhouette_master</field>
+        <field name = "arch" type = "xml">
+            <tree editable="bottom">
+                <field name = "silhouette"/>
+                <field name = "silhouette_name"/>
+            </tree>
+        </field>
+    </record>
+
+    <menuitem id="silhouette_master" name="Silhouette Master" parent ="others" action = "action_silhouette_master" sequence="100" />
+
+</odoo>

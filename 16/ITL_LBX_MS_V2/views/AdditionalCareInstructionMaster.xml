@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_additional_care_instruction" model="ir.actions.act_window">
+        <field name="name">Additional Care Instruction Master</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">additional_care_instruction</field>
+        <field name="view_mode">tree</field>
+    </record>
+
+
+    <!-- Start of Tree View -->
+    <record id = "additional_care_instruction_tree" model = "ir.ui.view">
+        <field name = "name">Additional Care Instruction Master</field>
+        <field name = "model">additional_care_instruction</field>
+        <field name = "arch" type = "xml">
+            <tree editable="bottom">
+                <field name = "additional_care_instruction"/>
+                <field name = "additional_care_instruction_name"/>
+            </tree>
+        </field>
+    </record>
+
+    <menuitem id="additional_care_instruction" name="Additional Care Instruction Master" parent ="care_instruction" action = "action_additional_care_instruction" sequence="190" />
+
+</odoo>

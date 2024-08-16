@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_size_mapping" model="ir.actions.act_window">
+        <field name="name">SIZE RANGE</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">size_range_master</field>
+        <field name="view_mode">tree</field>
+    </record>
+
+    <!-- Start of Tree View -->
+    <record id = "size_range_tree" model = "ir.ui.view">
+        <field name = "name">SIZE RANGE</field>
+        <field name = "model">size_range_master</field>
+        <field name = "arch" type = "xml">
+            <tree editable="bottom">
+                <field name = "Size_Range"/>
+                <field name = "Size_Range_name"/>
+                <field name = "Size_Range_DESC"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id = "size_range_search" model = "ir.ui.view">
+        <field name = "name">size range search</field>
+        <field name = "model">size_range_master</field>
+        <field name = "arch" type = "xml">
+            <search>
+                <field name = "Size_Range" string="SIZE RANGE"/>
+                <field name = "Size_Range_name" string="SIZE RANGE NAME"/>
+            </search>
+        </field>
+    </record>
+
+    <menuitem id="size_range_master" name="Size Range Master" parent ="menu_items_size" action = "action_size_mapping" sequence="50" />
+
+
+
+
+
+</odoo>

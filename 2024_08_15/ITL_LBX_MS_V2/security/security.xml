@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Define a new user group -->
+        <record id="group_shahidh_admin_viewer" model="res.groups">
+            <field name="name">Admin Shahidh Viewer</field>
+            <field name="category_id" ref="base.module_category_hidden"/>
+            <field name="comment">Group with access to XML section.</field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_season_master" model="ir.actions.act_window">
+        <field name="name">Season Master</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">seson_master</field>
+        <field name="view_mode">tree</field>
+    </record>
+
+    <!-- Start of Tree View -->
+    <record id = "season_master_tree" model = "ir.ui.view">
+        <field name = "name">Season Master</field>
+        <field name = "model">seson_master</field>
+        <field name = "arch" type = "xml">
+            <tree editable="bottom">
+                <field name = "season"/>
+                <field name = "season_name"/>
+            </tree>
+        </field>
+    </record>
+
+    <menuitem id="season_master" name="Season Master" parent ="others" action = "action_season_master" sequence="90" />
+
+
+</odoo>

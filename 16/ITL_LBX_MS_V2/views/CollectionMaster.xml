@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_collection_master" model="ir.actions.act_window">
+        <field name="name">Collection Master</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">collection_master</field>
+        <field name="view_mode">tree</field>
+    </record>
+
+
+    <!-- Start of Tree View -->
+    <record id = "collection_master_tree" model = "ir.ui.view">
+        <field name = "name">Collection Master</field>
+        <field name = "model">collection_master</field>
+        <field name = "arch" type = "xml">
+            <tree editable="bottom">
+                <field name = "Collection"/>
+                <field name = "Collection_name"/>
+            </tree>
+        </field>
+    </record>
+
+    <menuitem id="collection_master" name="Collection Master" parent ="others" action = "action_collection_master" sequence="110" />
+
+</odoo>

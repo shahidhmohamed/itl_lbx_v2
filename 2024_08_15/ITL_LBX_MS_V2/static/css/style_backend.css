@@ -1,0 +1,108 @@
+/* Primary color */
+:root {
+  --primary-color: #043553;
+  --hover-color: #ffda33; /* Yellow color for hover effects */
+}
+
+/* Navbar styles */
+.o_main_navbar {
+  background-color: var(--primary-color);
+  border-bottom: 1px solid var(--primary-color);
+  position: relative;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Added shadow effect */
+}
+
+.o_main_navbar > a:hover,
+.o_main_navbar > a:focus,
+.o_main_navbar > button:hover,
+.o_main_navbar > button:focus,
+.o_main_navbar .show .dropdown-toggle {
+  background-color: var(--primary-color);
+}
+
+/* Search view facet */
+.o_searchview .o_searchview_facet .o_searchview_facet_label {
+  background-color: var(--primary-color);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Added shadow effect */
+}
+
+/* Primary button styles */
+.btn-primary {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Added shadow effect */
+}
+
+.btn-primary:hover {
+  background-color: #1634b9;
+  border-color: #1634b9;
+}
+
+/* Custom buttons */
+.btn-lbx {
+  background-color: var(--primary-color);
+  color: aliceblue;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Added shadow effect */
+}
+
+.btn-lbx:hover {
+  background-color: #149635;
+  color: aliceblue;
+}
+
+.btn_delete_lbx {
+  color: aliceblue;
+  background-color: #dc3545;
+  color: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Added shadow effect */
+}
+
+.btn_delete_lbx:hover {
+  background-color: #b31127;
+  border-color: #b31127;
+  color: aliceblue;
+}
+
+.btn_match_lbx {
+  color: aliceblue;
+  background-color: #ced11c;
+  color: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Added shadow effect */
+}
+
+.btn_match_lbx:hover {
+  background-color: #b38d11;
+  color: aliceblue;
+}
+
+/* Custom button styles */
+.btn-custom {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* padding: 10px; */
+  font-size: 14px;
+  line-height: 1.2;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Added shadow effect */
+}
+
+.btn-custom .btn-content {
+  text-align: center;
+}
+
+.btn-custom .btn-content i {
+  font-size: 24px;
+  margin-bottom: 5px;
+}
+
+.btn-custom .btn-label {
+  display: block;
+  font-size: 14px;
+}
+
+.dashboard-container {
+  background-color: darkgoldenrod;
+}

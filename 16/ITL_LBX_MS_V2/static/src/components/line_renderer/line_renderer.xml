@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="owl.RadialProgressBar" owl="1">
+        <div style="width: 200px; height: 200px;">
+            <canvas t-ref="chart"></canvas>
+        </div>
+    </t>
+</templates>

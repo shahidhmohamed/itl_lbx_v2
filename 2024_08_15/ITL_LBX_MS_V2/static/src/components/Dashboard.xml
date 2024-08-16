@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <div t-name="Itl.Dashboard" owl="1" class="">
+        <div class="dashboard-container vh-100 overflow-auto">
+            <div class="side-bar bg-light p-3" style="width: 250px;">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link text-dark">
+                            <i class="fa fa-home"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link text-dark">
+                            <i class="fa fa-file-alt"></i> Reports
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link text-dark">
+                            <i class="fa fa-cog"></i> Settings
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</templates>
