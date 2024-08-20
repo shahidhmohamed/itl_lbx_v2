@@ -8,6 +8,10 @@ import { PoChartRenderer } from "./po_type_chart/po_chart";
 import { loadJS } from "@web/core/assets";
 import { PoCard } from "./po_type_card/po_card";
 import { RadialProgressBar } from "./line_renderer/line_renderer";
+import { Percentage } from "./order_percentage_details/order_percentage_details";
+import { PoPercentage } from "./po_type_percentage_details/po_type_percentage_details";
+import { UserDetails } from "./user_details/user_details";
+import { UserDetailsPercentage } from "./user_percentage/user_percentage";
 const { Component, onWillStart, useRef, useState } = owl;
 
 export class OwlSalesDashboard extends Component {
@@ -49,6 +53,6 @@ export class OwlSalesDashboard extends Component {
 }
 
 OwlSalesDashboard.template = "owl.OwlSalesDashboard";
-OwlSalesDashboard.components = { KpiCard, ChartRenderer, PoCard, PoChartRenderer, RadialProgressBar };
+OwlSalesDashboard.components = { KpiCard, ChartRenderer, PoCard, PoChartRenderer, RadialProgressBar, Percentage, PoPercentage, UserDetails, UserDetailsPercentage };
 
 registry.category("actions").add("owl.sales_dashboard", OwlSalesDashboard);

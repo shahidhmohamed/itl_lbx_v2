@@ -32,6 +32,7 @@
         'wizard/RfidPopUpWizardForm.xml',
         'views/AdditionalCareInstructionMaster.xml',
         'security/security.xml',
+        'views/ComboColorCodeMaster.xml'
         
     ],
     'assets': {

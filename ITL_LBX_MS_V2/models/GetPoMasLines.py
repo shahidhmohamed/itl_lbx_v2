@@ -150,6 +150,9 @@ class GetPoLines(models.Model):
     DeliveryAddress = fields.Many2one(
         string="Delivery Address", related="header_table.DeliveryAddress", store=True
     )
+    combo_color_code_name = fields.Char(
+        string="Combo Color Code Name", related="header_table.combo_color_code_name", store=True
+    )
     additional_ins = fields.Char(
         string="Additional Instruction",
         related="header_table.additional_ins_name",
@@ -557,6 +560,9 @@ class GetPoLinesMainLable(models.Model):
     color_desc = fields.Char(
         string="Color Desc", related="header_table.color_desc", store=True
     )
+    combo_color_code_name = fields.Char(
+        string="Combo Color Code Name", related="header_table.combo_color_code_name", store=True
+    )
     style_number = fields.Char(
         string="Style Number", related="header_table.style_number", store=True
     )
@@ -769,6 +775,9 @@ class GetPoLinesCareLable(models.Model):
 
     CustomerID = fields.Char(
         string="Customer Id", related="header_table.CustomerID", store=True
+    )
+    combo_color_code_name = fields.Char(
+        string="Combo Color Code Name", related="header_table.combo_color_code_name", store=True
     )
     AddressID = fields.Char(
         string="Address Id", related="header_table.DeliveryAddressId", store=True
@@ -1080,6 +1089,9 @@ class GetPoLinesPriceTkt(models.Model):
 
     CustomerID = fields.Char(
         string="Customer Id", related="header_table.CustomerID", store=True
+    )
+    combo_color_code_name = fields.Char(
+        string="Combo Color Code Name", related="header_table.combo_color_code_name", store=True
     )
     AddressID = fields.Char(
         string="Address Id", related="header_table.DeliveryAddressId", store=True

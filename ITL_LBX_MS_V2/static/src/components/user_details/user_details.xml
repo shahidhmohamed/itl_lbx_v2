@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates>
+    <t t-name="owl.UserDetails" owl="1">
+        <div class="col m-0 p-0">
+            <div class="shadow-sm m-10 p-8 dashboard-header">
+                <div class="dashboard-header d-flex p-2">
+                    <div class="dashboard-logo mr-2">
+                        <img t-att-src="props.img ? 'data:image/png;base64,' + props.img : ''" alt="User Image" class="dashboard-logo mr-2"/>
+                    </div>
+                    <h1 class="fw-bold text-4xl m-0 text-info">
+                        <span t-esc="props.data"/>
+                    </h1>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

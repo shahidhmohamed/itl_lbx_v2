@@ -20,3 +20,5 @@ from . import CareInstructionSetCodeMaster
 from . import AdditionalInstructionMaster
 from . import Dashboard
 from . import AdditionalCareInstructionMaster
+from . import res_partner
+from . import ComboColorCodeMaster

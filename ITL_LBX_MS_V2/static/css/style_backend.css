@@ -117,7 +117,7 @@
 }
 
 .po-card-container {
-  margin-top: 85px;
+  margin-top: 10px;
 }
 
 .order-card-container {
@@ -147,4 +147,87 @@
   margin-right: 10px;
   margin-left: 5px;
   border-radius: 20px;
+}
+
+/* Percentage Card */
+.radial-progress {
+  position: relative;
+  width: 120px;
+  height: 120px;
+}
+
+.radial-progress-svg {
+  transform: rotate(-90deg);
+  width: 100%;
+  height: 100%;
+}
+
+.radial-progress-bg {
+  fill: none;
+  stroke: #e0e0e0;
+  stroke-width: 10;
+}
+
+.radial-progress-bar {
+  fill: none;
+  stroke-width: 10;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.35s;
+}
+
+.radial-progress-bar-done {
+  stroke: #4caf50;
+}
+
+.radial-progress-bar-cancelled {
+  stroke: #f44336;
+}
+
+.radial-progress-bar-open {
+  stroke: #2196f3;
+}
+
+/* po type per */
+.po-progress-bar-rfid {
+  stroke: #4caf50;
+}
+
+.po-progress-bar-main {
+  stroke: #f44336;
+}
+
+.po-progress-bar-care {
+  stroke: #f3de21;
+}
+
+.po-progress-bar-price {
+  stroke: #2196f3;
+}
+
+/*  */
+.radial-progress-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 24px;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.radial-progress-label {
+  margin-top: 8px;
+  margin-bottom: 3px;
+  font-size: 16px;
+  font-size: 20px;
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.po_percentage_row {
+  margin-left: 9px;
+}
+
+.percentage_container {
+  margin-left: 9px;
 }

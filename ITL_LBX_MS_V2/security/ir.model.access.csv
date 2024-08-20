@@ -39,3 +39,4 @@ access_get_po_mas_lines_main_lable,get_po_mas_lines_main_lable,model_get_po_mas_
 access_get_po_mas_lines_price_tkt,get_po_mas_lines_price_tkt,model_get_po_mas_lines_price_tkt,base.group_user,1,1,1,1
 
 access_rfid_response_wizard,rfid_response_wizard,model_rfid_response_wizard,base.group_user,1,1,1,1
+access_combo_color_code_master,combo_color_code_master,model_combo_color_code_master,base.group_user,1,1,1,1

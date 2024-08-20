@@ -16,6 +16,7 @@ from xml.dom import minidom
 from lxml import etree
 from collections import defaultdict
 from datetime import date, timedelta
+import xmlrpc.client
 
 
 class GetPo(models.Model):
@@ -33,6 +34,11 @@ class GetPo(models.Model):
     xml_response = fields.Text(string="XML", readonly=False)
 
     current_user = fields.Char(string="Current User", compute="_compute_current_user")
+    current_user_img = fields.Image(string="Current User Image", compute="_compute_current_user_img")
+
+    def _compute_current_user_img(self):
+        for record in self:
+            record.current_user_img = self.env.user.image_1920
 
     name = fields.Char(
         string="Order Ref",
@@ -160,36 +166,47 @@ class GetPo(models.Model):
     @api.model
     def get_purchase_order_count(self):
         today = date.today()
+
+        # Get the counts for each status
+        total_orders = len(self.env["get_po_mas"].search([]))
+        done_count = len(self.env["get_po_mas"].search([("Status", "=", "Success")]))
+        cancelled_count = len(self.env["get_po_mas"].search([("Status", "=", "Cancelled")]))
+        open_count = len(self.env["get_po_mas"].search([("Status", "=", "Open")]))
+        rfid_count = len(self.env["get_po_mas"].search([("ChoosePo", "=", "RFID")]))
+        main_count = len(self.env["get_po_mas"].search([("ChoosePo", "=", "MAIN LABELS")]))
+        care_count = len(self.env["get_po_mas"].search([("ChoosePo", "=", "CARE LABELS")]))
+        price_tkt_count = len(self.env["get_po_mas"].search([("ChoosePo", "=", "PRICE TKT / BARCODE STK")]))
+
+        # Calculate percentages
+        def calculate_percentage(count, total):
+            return (count / total * 100) if total > 0 else 0
+
         purchase_order_count = {
-            "all_purchase_order": len(self.env["get_po_mas"].search([])),
-            "done": len(self.env["get_po_mas"].search([("Status", "=", "Success")])),
-            "cancelled": len(
-                self.env["get_po_mas"].search([("Status", "=", "Cancelled")])
-            ),
-            "open": len(self.env["get_po_mas"].search([("Status", "=", "Open")])),
-            "rfid_count": len(
-                self.env["get_po_mas"].search([("ChoosePo", "=", "RFID")])
-            ),
-            "care_labels_count": len(
-                self.env["get_po_mas"].search([("ChoosePo", "=", "CARE LABELS")])
-            ),
-            "main_lable_count": len(
-                self.env["get_po_mas"].search([("ChoosePo", "=", "MAIN LABELS")])
-            ),
-            "price_tkt_count": len(
-                self.env["get_po_mas"].search(
-                    [("ChoosePo", "=", "PRICE TKT / BARCODE STK")]
-                )
-            ),
+            "all_purchase_order": total_orders,
+            "done": done_count,
+            "cancelled": cancelled_count,
+            "open": open_count,
+            "done_percentage": calculate_percentage(done_count, total_orders),
+            "cancelled_percentage": calculate_percentage(cancelled_count, total_orders),
+            "open_percentage": calculate_percentage(open_count, total_orders),
+            "rfid_count": rfid_count,
+            "care_labels_count": care_count,
+            "main_label_count": main_count,  # Fixed typo from 'main_lable_count'
+            "price_tkt_count": price_tkt_count,
             "today_order_count": len(
-                self.search(
-                    [
-                        ("create_date", ">=", today),
-                        ("create_date", "<", today + timedelta(days=1)),
-                    ]
-                )
+                self.env["get_po_mas"].search([
+                    ("create_date", ">=", today),
+                    ("create_date", "<", today + timedelta(days=1))
+                ])
             ),
+            "rfid_percentage": calculate_percentage(rfid_count, total_orders),
+            "care_percentage": calculate_percentage(care_count, total_orders),
+            "main_percentage": calculate_percentage(main_count, total_orders),
+            "price_tkt_percentage": calculate_percentage(price_tkt_count, total_orders),
+            "current_user_img": self.env.user.image_1920,
+            "current_user": self.env.user.name
         }
+
         return purchase_order_count
 
     @api.depends("ChainID")
@@ -285,6 +302,21 @@ class GetPo(models.Model):
                 record.season_name = record.season.season_name
             else:
                 record.season_name = False
+    
+
+    '''combo color code'''
+    combo_color_code = fields.Many2one("combo_color_code_master", string="Combo Color Code", store=True)
+    combo_color_code_name = fields.Char(
+        string="Combo Color Code Name", compute="_compute_combo_color_code"
+    )
+
+    @api.depends("combo_color_code")
+    def _compute_combo_color_code(self):
+        for record in self:
+            if record.combo_color_code:
+                record.combo_color_code_name = record.combo_color_code.combo_color_code_name
+            else:
+                record.combo_color_code_name = False
 
     """Customer Details and Delivery address Details"""
     Customer = fields.Many2one("res.partner", string="Customer", store=True)
@@ -303,7 +335,7 @@ class GetPo(models.Model):
     DeliveryAddress = fields.Many2one(
         "res.partner",
         string="Delivery Address",
-        domain="[('id', 'child_of', Customer)]",
+        domain="[('parent_id', '=', Customer), ('type', '=', 'delivery')]",
     )
 
     @api.onchange("Customer")
@@ -1157,21 +1189,16 @@ class GetPo(models.Model):
     #     return new_values
 
     # ----------------------------------------------------------------------------------------------------------
-    # RFID
+    # RFID - Posting
     # ----------------------------------------------------------------------------------------------------------
-    # <--- posting --->
     xml_content = fields.Binary("XML Content", readonly=True)
 
     def action_post_rfid(self):
-        lines = self.env["get_po_mas_lines"].search(
-            [("header_table", "=", self.id)]
-        )
-
-        if not lines:
-            raise UserError("No lines found for the given header.")
         customer_orders = {}
+        lines = self.env["get_po_mas_lines"].search([("header_table", "=", self.id)])
 
-        for line in self.line_ids:
+        # for line in self.line_ids:
+        for line in lines:
             if line.POwithLine not in customer_orders:
                 customer_orders[line.POwithLine] = {
                     "details": {
@@ -1202,7 +1229,7 @@ class GetPo(models.Model):
                         "line_item": line.purchase_order_item,
                         "item_code": line.material_code,
                         "vsd_style_6": "12345",
-                        "order_quantity": line.order_quantity,  # need to change the field name
+                        "order_quantity": line.order_quantity,
                         "season": line.season,
                         "size_range": line.size_range,
                         "country_of_origin": line.Coo,
@@ -1212,7 +1239,7 @@ class GetPo(models.Model):
 
             customer_orders[line.POwithLine]["orders"][line.ProductRef]["sizes"].append(
                 {
-                    "size": line.grid_value,
+                    "size": line.size_lv if line.size_lv else line.grid_value,
                     "size_id": line.size_id,
                     "po_number": line.po_number,
                     "style": line.customer_style,
@@ -1288,9 +1315,9 @@ class GetPo(models.Model):
                 for size_data in order["sizes"]:
                     size_line_elem = ET.SubElement(sizelines_elem, "size_line")
 
-                    size_column = "size_lv" if "size_lv" in size_data else "size"
+                    # size_column = "size_lv" if "size_lv" in size_data else "size"
                     size_elem = ET.SubElement(size_line_elem, "size")
-                    size_elem.text = size_data[size_column]  # check
+                    size_elem.text = size_data["size"]  # check
 
                     size_id_elem = ET.SubElement(size_line_elem, "size_id")
                     size_id_elem.text = size_data["size_id"]
@@ -1374,10 +1401,7 @@ class GetPo(models.Model):
             userpass="brandixws01",
             xmlinput=pretty_xml_str_rfid,
         )
-
-        wizard = self.env["rfid.response.wizard"].create(
-            {"response_content": response}
-        )
+        wizard = self.env["rfid.response.wizard"].create({"response_content": response})
         self._process_response(response)
         return {
             "type": "ir.actions.act_window",
@@ -1389,11 +1413,15 @@ class GetPo(models.Model):
         }
 
     def _process_response(self, response):
+        # parsing the response
         root = ET.fromstring(response)
+
+        # Iterate over each result
         for result in root.findall("result"):
             status = result.find("status").text
             customer_order_no = result.find("customer_order_no").text
 
+            # Determine the new status
             if status == "error":
                 new_status = "Open"
             elif status == "success":
@@ -1401,30 +1429,34 @@ class GetPo(models.Model):
             else:
                 continue
 
+            # Update the status in Odoo
             self._update_po_status(customer_order_no, new_status)
 
     def _update_po_status(self, customer_order_no, new_status):
-        po_lines = self.env["get_po_mas_lines"].search([("POwithLine", "=", customer_order_no)])
+        po_lines = self.env["get_po_mas_lines"].search(
+            [("POwithLine", "=", customer_order_no)]
+        )
         if po_lines:
+            # Check if the current status is already 'Success'
+            current_status = po_lines.mapped("StatusField")
+            if "Success" in current_status:
+                # If any line already has a status of 'Success', do not update it
+                return
             po_lines.write({"StatusField": new_status})
         else:
             raise UserError(f"PO with line {customer_order_no} not found.")
 
-
-    #    <---  XML  --->
+    # ----------------------------------------------------------------------------------------------------------
+    # RFID - XML
+    # ----------------------------------------------------------------------------------------------------------
     xml_content = fields.Binary("XML Content", readonly=True)
 
     def action_check_rfid(self):
-        lines = self.env["get_po_mas_lines"].search(
-            [("header_table", "=", self.id)]
-        )
-
-        if not lines:
-            raise UserError("No lines found for the given header.")
-            
         customer_orders = {}
+        lines = self.env["get_po_mas_lines"].search([("header_table", "=", self.id)])
 
-        for line in self.line_ids:
+        # for line in self.line_ids:
+        for line in lines:
             if line.POwithLine not in customer_orders:
                 customer_orders[line.POwithLine] = {
                     "details": {
@@ -1465,7 +1497,7 @@ class GetPo(models.Model):
 
             customer_orders[line.POwithLine]["orders"][line.ProductRef]["sizes"].append(
                 {
-                    "size": line.grid_value,
+                    "size": line.size_lv if line.size_lv else line.grid_value,
                     "size_id": line.size_id,
                     "po_number": line.po_number,
                     "style": line.customer_style,
@@ -1541,9 +1573,9 @@ class GetPo(models.Model):
                 for size_data in order["sizes"]:
                     size_line_elem = ET.SubElement(sizelines_elem, "size_line")
 
-                    size_column = "size_lv" if "size_lv" in size_data else "size"
+                    # size_column = "size_lv" if "size_lv" in size_data else "size"
                     size_elem = ET.SubElement(size_line_elem, "size")
-                    size_elem.text = size_data[size_column]
+                    size_elem.text = size_data["size"]  # check
 
                     size_id_elem = ET.SubElement(size_line_elem, "size_id")
                     size_id_elem.text = size_data["size_id"]
@@ -1615,10 +1647,9 @@ class GetPo(models.Model):
         raise UserError(_("Generated XML:\n%s") % soap_envelope_rfid)
 
     # -----------------------------------------------------------------------------------------------------------
-    # Main Label
+    # Main Label - Post
     # -----------------------------------------------------------------------------------------------------------
 
-    # <----- Post ---->
     def action_post_main(self):
         lines = self.env["get_po_mas_lines_main_lable"].search(
             [("header_table", "=", self.id)]
@@ -1722,7 +1753,7 @@ class GetPo(models.Model):
                 f"        <delivery_contact>{Customer_name}</delivery_contact>\n"
             )
             xml_body += f"        <delivery_method>TRUCK</delivery_method>\n"
-            xml_body += f"        <delivery_account_no></delivery_account_no>\n"
+            xml_body += f"        <delivery_account_no>ITL</delivery_account_no>\n"
             xml_body += (
                 f"        <customer_confirmation_email></customer_confirmation_email>\n"
             )
@@ -1842,10 +1873,10 @@ class GetPo(models.Model):
                             [("id", "=", size_line.cid)], limit=1
                         )
                         if composition:
-                            xml_body += "                    <component>\n"
                             if composition.Component_1_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_1_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_1_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_1_fiber1_name}</fibre_name>\n"
@@ -1896,14 +1927,16 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_1_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_1_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_1_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
                             # except Exception as e:
                             # raise UserError(f"An error occurred: {str(e)}")
-                            xml_body += "                    <component>\n"
+                            # Component2
                             if composition.Component_2_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_2_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_2_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_2_fiber1_name}</fibre_name>\n"
@@ -1954,13 +1987,16 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_2_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_2_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_2_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
+
                             # component 3
-                            xml_body += "                    <component>\n"
+
                             if composition.Component_3_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_3_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_3_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_3_fiber1_name}</fibre_name>\n"
@@ -2011,13 +2047,15 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_3_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_3_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_3_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
+
                             # component 4
-                            xml_body += "                    <component>\n"
                             if composition.Component_4_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_4_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_4_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_4_fiber1_name}</fibre_name>\n"
@@ -2068,13 +2106,15 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_4_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_4_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_4_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
+
                             # component 5
-                            xml_body += "                    <component>\n"
                             if composition.Component_5_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_5_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_5_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_5_fiber1_name}</fibre_name>\n"
@@ -2125,13 +2165,15 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_5_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_5_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_5_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
                             # component 6
-                            xml_body += "                    <component>\n"
+
                             if composition.Component_6_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_6_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_6_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_6_fiber1_name}</fibre_name>\n"
@@ -2182,13 +2224,16 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_6_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_6_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_6_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
+
                             # component 7
-                            xml_body += "                    <component>\n"
+
                             if composition.Component_7_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_7_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_7_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_7_fiber1_name}</fibre_name>\n"
@@ -2239,13 +2284,16 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_7_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_7_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_7_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
+
                             # component 8
-                            xml_body += "                    <component>\n"
+
                             if composition.Component_8_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_8_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_8_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_8_fiber1_name}</fibre_name>\n"
@@ -2296,13 +2344,16 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_8_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_8_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_8_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
+
                             # component 9
-                            xml_body += "                    <component>\n"
+
                             if composition.Component_9_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_9_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_9_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_9_fiber1_name}</fibre_name>\n"
@@ -2353,13 +2404,15 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_9_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_9_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_9_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
                             # component 10
-                            xml_body += "                    <component>\n"
+
                             if composition.Component_10_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_10_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_10_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_10_fiber1_name}</fibre_name>\n"
@@ -2410,8 +2463,9 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_10_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_10_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_10_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
                 except Exception as e:
                     raise UserError(f"An error occurred: {str(e)}")
 
@@ -2452,32 +2506,41 @@ class GetPo(models.Model):
         session.auth = HTTPBasicAuth("brandixws", "brandixws01")
         client = Client(wsdl_url, transport=Transport(session=session))
         # Send the request and get the response
-        
-        response = client.service.createCustomerOrders(
-            system="test",
-            usercode="brandixws",
-            userpass="brandixws01",
-            xmlinput=xml_data,
-        )
-        wizard = self.env["rfid.response.wizard"].create(
-            {"response_content": response}
-        )
-        self._process_response(response)
-        return {
-            "type": "ir.actions.act_window",
-            "res_model": "rfid.response.wizard",
-            "view_mode": "form",
-            "view_id": self.env.ref("ITL_LBX_MS_V2.view_rfid_response_wizard_form").id,
-            "target": "new",
-            "res_id": wizard.id,
-        }
+        try:
+            response = client.service.createCustomerOrders(
+                system="live",
+                usercode="brandixws",
+                userpass="brandixws01",
+                xmlinput=xml_data,
+            )
+            # Create a wizard to display the response
+            wizard = self.env["rfid.response.wizard"].create(
+                {"response_content": response}
+            )
+            self._process_response(response)  # Call the response processing method
+
+            return {
+                "type": "ir.actions.act_window",
+                "res_model": "rfid.response.wizard",
+                "view_mode": "form",
+                "view_id": self.env.ref(
+                    "ITL_LBX_MS_V2.view_rfid_response_wizard_form"
+                ).id,
+                "target": "new",
+                "res_id": wizard.id,
+            }
+        except Exception as e:
+            raise UserError(f"An error occurred while sending the request:\n{str(e)}")
+
+            # raise UserError(f"Response from the service:\n{response}")
 
     def _process_response(self, response):
         root = ET.fromstring(response)
-        for result in root.findall("result"):
-            status = result.find("status").text
+        for result in root.findall(".//result"):
             customer_order_no = result.find("customer_order_no").text
+            status = result.find("status").text
 
+            # Determine the new status
             if status == "error":
                 new_status = "Open"
             elif status == "success":
@@ -2488,12 +2551,19 @@ class GetPo(models.Model):
             self._update_po_status(customer_order_no, new_status)
 
     def _update_po_status(self, customer_order_no, new_status):
-        po_lines = self.env["get_po_mas_lines_main_lable"].search([("POwithLine", "=", customer_order_no)])
-        if po_lines:
-            po_lines.write({"StatusField": new_status})
+        # Search for the corresponding PO line in the Odoo model
+        po_line = self.env["get_po_mas_lines_main_lable"].search(
+            [("POwithLine", "=", customer_order_no)]
+        )
+        if po_line:
+
+            current_status = po_line.mapped("StatusField")
+            if "Success" in current_status:
+                return
+            po_line.write({"StatusField": new_status})
+
         else:
             raise UserError(f"PO with line {customer_order_no} not found.")
-
 
     # <----- XML ---->
     def action_main_xml(self):
@@ -2719,10 +2789,11 @@ class GetPo(models.Model):
                             [("id", "=", size_line.cid)], limit=1
                         )
                         if composition:
-                            xml_body += "                    <component>\n"
+
                             if composition.Component_1_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_1_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_1_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_1_fiber1_name}</fibre_name>\n"
@@ -2773,12 +2844,14 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_1_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_1_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_1_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
                             # except Exception as e:
                             # raise UserError(f"An error occurred: {str(e)}")
-                            xml_body += "                    <component>\n"
+
                             if composition.Component_2_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_2_name}</component_name>\n"
                             xml_body += "                        <fibres>\n"
                             if composition.component_2_fiber1_name:
@@ -2831,13 +2904,15 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_2_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_2_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_2_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
                             # component 3
-                            xml_body += "                    <component>\n"
+
                             if composition.Component_3_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_3_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_3_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_3_fiber1_name}</fibre_name>\n"
@@ -2888,13 +2963,15 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_3_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_3_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_3_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
                             # component 4
-                            xml_body += "                    <component>\n"
+
                             if composition.Component_4_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_4_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_4_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_4_fiber1_name}</fibre_name>\n"
@@ -2945,13 +3022,15 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_4_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_4_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_4_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
                             # component 5
-                            xml_body += "                    <component>\n"
+
                             if composition.Component_5_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_5_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_5_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_5_fiber1_name}</fibre_name>\n"
@@ -3002,13 +3081,15 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_5_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_5_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_5_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
                             # component 6
-                            xml_body += "                    <component>\n"
+
                             if composition.Component_6_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_6_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_6_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_6_fiber1_name}</fibre_name>\n"
@@ -3059,13 +3140,15 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_6_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_6_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_6_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
                             # component 7
-                            xml_body += "                    <component>\n"
+
                             if composition.Component_7_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_7_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_7_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_7_fiber1_name}</fibre_name>\n"
@@ -3116,13 +3199,15 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_7_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_7_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_7_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
                             # component 8
-                            xml_body += "                    <component>\n"
+
                             if composition.Component_8_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_8_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_8_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_8_fiber1_name}</fibre_name>\n"
@@ -3173,13 +3258,15 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_8_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_8_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_8_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
                             # component 9
-                            xml_body += "                    <component>\n"
+
                             if composition.Component_9_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_9_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_9_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_9_fiber1_name}</fibre_name>\n"
@@ -3230,13 +3317,15 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_9_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_9_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_9_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
                             # component 10
-                            xml_body += "                    <component>\n"
+
                             if composition.Component_10_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_10_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_10_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_10_fiber1_name}</fibre_name>\n"
@@ -3287,8 +3376,9 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_10_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_10_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_10_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
                 except Exception as e:
                     raise UserError(f"An error occurred: {str(e)}")
 
@@ -3325,11 +3415,474 @@ class GetPo(models.Model):
         # Raise UserError to display the XML
         raise UserError(xml_data)
 
-# -----------------------------------------------------------------------------------------------------------
-    # Main Label
+    #
+
+    # ----------------------------------------------------------------------------------------------------------
+    # Prize Tkt - Posting
+    # ----------------------------------------------------------------------------------------------------------
+    xml_content = fields.Binary("XML Content", readonly=True)
+
+    def action_post_prize(self):
+        customer_orders = {}
+        lines = self.env["get_po_mas_lines_price_tkt"].search(
+            [("header_table", "=", self.id)]
+        )
+
+        # for line in self.line_ids:
+        for line in lines:
+            if line.POwithLine not in customer_orders:
+                customer_orders[line.POwithLine] = {
+                    "details": {
+                        "itlcode": "3",
+                        "chainid": line.ChainID_id,
+                        "ocscustno": line.CustomerID,
+                        "delivery_address_id": line.AddressID,
+                        "delivery_contact": line.Customer_name,
+                        "delivery_method": "TRUCK",
+                        "delivery_account_no": "ITL",
+                    },
+                    "orders": {},
+                    # "sizes": [],
+                }
+
+            # existing_orders = [
+            #     order["product_ref"]
+            #     for order in customer_orders[line.POwithLine]["orders"]
+            # ]
+            # if line.ProductRef not in existing_orders:
+            if line.ProductRef not in customer_orders[line.POwithLine]["orders"]:
+                customer_orders[line.POwithLine]["orders"][line.ProductRef] = {
+                    "details": {
+                        "product_ref": line.ProductRef,
+                        "vs_po_number": line.po_number,
+                        "so_number": line.SoRefLv,
+                        "po_date": line.po_date,
+                        "line_item": line.purchase_order_item,
+                        "item_code": line.material_code,
+                        "vsd_style_6": "12345",
+                        "order_quantity": line.order_quantity,
+                        "season": line.season,
+                        "size_range": line.size_range,
+                        "country_of_origin": line.Coo,
+                    },
+                    "sizes": [],
+                }
+
+            customer_orders[line.POwithLine]["orders"][line.ProductRef]["sizes"].append(
+                {
+                    "size": line.size_lv if line.size_lv else line.grid_value,
+                    "size_id": line.size_id,
+                    "po_number": line.po_number,
+                    "style": line.customer_style,
+                    "colour_code": line.color_code_2,
+                    "sku": line.sku,
+                    "article_number": line.article_num,
+                    "delivery_date": line.delivery_date,
+                    "retail_price": line.retail_usd,
+                    "retail_price2": line.retail_cad,
+                    "retail_price3": line.retail_gbp,
+                    "size_quantity": line.size_quantity,
+                }
+            )
+        root = ET.Element("customerorders")
+
+        for POwithLine, order_data in customer_orders.items():
+            current_customer_order = ET.SubElement(root, "customerorder")
+
+            customer_order_no = ET.SubElement(
+                current_customer_order, "customer_order_no"
+            )
+            customer_order_no.text = POwithLine
+
+            details = order_data["details"]
+            for key, value in details.items():
+                detail_elem = ET.SubElement(current_customer_order, key.lower())
+                detail_elem.text = str(value)
+
+            worksorders_elem = ET.SubElement(current_customer_order, "worksorders")
+
+            for product_ref, order in order_data["orders"].items():
+                current_works_order = ET.SubElement(worksorders_elem, "worksorder")
+
+                product_ref_element = ET.SubElement(current_works_order, "product_ref")
+                product_ref_element.text = order["details"]["product_ref"]
+
+                vspo_element = ET.SubElement(current_works_order, "vs_po_number")
+                vspo_element.text = order["details"]["vs_po_number"]
+
+                so_no_elem1 = ET.SubElement(current_works_order, "so_number")
+                so_no_elem1.text = order["details"]["so_number"]
+
+                po_date_element = ET.SubElement(current_works_order, "po_date")
+                po_date_element.text = order["details"]["po_date"].strftime("%Y-%m-%d")
+
+                line_item_ele = ET.SubElement(current_works_order, "line_item")
+                line_item_ele.text = order["details"]["line_item"]
+
+                item_code_ele = ET.SubElement(current_works_order, "item_code")
+                item_code_ele.text = order["details"]["item_code"]
+
+                vsd_style_6_ele = ET.SubElement(current_works_order, "vsd_style_6")
+                vsd_style_6_ele.text = order["details"]["vsd_style_6"]  # check
+
+                order_quantity_ele = ET.SubElement(
+                    current_works_order, "order_quantity"
+                )
+                # order_quantity_ele.text = order["order_quantity"]
+                order_quantity_ele.text = str(order["details"]["order_quantity"])
+
+                season_ele = SubElement(current_works_order, "season")
+                season_ele.text = order["details"]["season"]
+
+                size_range_ele = SubElement(current_works_order, "size_range")
+                size_range_ele.text = order["details"]["size_range"]
+
+                country_of_origin_ele = SubElement(
+                    current_works_order, "country_of_origin"
+                )
+                country_of_origin_ele.text = order["details"]["country_of_origin"]
+
+                sizelines_elem = ET.SubElement(current_works_order, "sizelines")
+                for size_data in order["sizes"]:
+                    size_line_elem = ET.SubElement(sizelines_elem, "size_line")
+
+                    # size_column = "size_lv" if "size_lv" in size_data else "size"
+                    size_elem = ET.SubElement(size_line_elem, "size")
+                    size_elem.text = size_data["size"]  # check
+
+                    size_id_elem = ET.SubElement(size_line_elem, "size_id")
+                    size_id_elem.text = size_data["size_id"]
+
+                    po_no_elem = ET.SubElement(size_line_elem, "po_number")
+                    po_no_elem.text = size_data.get("po_number", "")
+
+                    style_no_elem = ET.SubElement(size_line_elem, "style")
+                    style_no_elem.text = size_data["style"]
+
+                    colour_code_elem = ET.SubElement(size_line_elem, "colour_code")
+                    colour_code_elem.text = size_data["colour_code"]
+
+                    sku_elem = ET.SubElement(size_line_elem, "sku")
+                    sku_elem.text = size_data["sku"]
+
+                    article_elem = ET.SubElement(size_line_elem, "article_number")
+                    article_elem.text = size_data["article_number"]
+
+                    if size_data["delivery_date"]:
+                        delivery_date = ET.SubElement(size_line_elem, "delivery_date")
+                        delivery_date.text = size_data["delivery_date"].strftime(
+                            "%Y-%m-%d"
+                        )
+
+                    retail_price_ele = ET.SubElement(size_line_elem, "retail_price")
+                    retail_price_ele.text = (
+                        "${:.2f}".format(float(size_data["retail_price"]))
+                        if size_data["retail_price"]
+                        else ""
+                    )
+
+                    retail_price2_ele = ET.SubElement(size_line_elem, "retail_price2")
+                    retail_price2_ele.text = (
+                        "${:.2f}".format(float(size_data["retail_price2"]))
+                        if size_data["retail_price2"]
+                        else ""
+                    )
+
+                    retail_price3_ele = ET.SubElement(size_line_elem, "retail_price3")
+                    retail_price3_ele.text = size_data["retail_price3"]
+
+                    sizeqty_elem = ET.SubElement(size_line_elem, "size_quantity")
+                    # sizeqty_elem.text = size_data["size_quantity"]
+                    sizeqty_elem.text = str(size_data["size_quantity"])
+
+        # xml_str = tostring(root, encoding="utf-8").decode("utf-8")
+        # raise UserError(_("Generated XML:\n%s") % xml_str)
+        xml_data = ET.tostring(root)
+        xml_str_rfid = xml_data.decode("utf-8")
+        dom = minidom.parseString(xml_str_rfid)
+        pretty_xml_str_rfid = dom.toprettyxml(indent="    ")
+
+        soap_envelope_rfid = (
+            "<?xml version='1.0' encoding='UTF-8'?>"
+            '<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">'
+            "<soap:Header/>"
+            "<soap:Body>"
+            '<ser:xmlinput xmlns:ser="http://services.web.labelvantage.com"/>'
+            '<ser:xmlinput xmlns:ser="http://services.web.labelvantage.com"/>'
+            '<ser:xmlinput xmlns:ser="http://services.web.labelvantage.com"/>'
+            '<ser:xmlinput xmlns:ser="http://services.web.labelvantage.com">'
+            "<![CDATA[" + pretty_xml_str_rfid + "]]>"
+            "</ser:xmlinput>"
+            "</soap:Body>"
+            "</soap:Envelope>"
+        )
+
+        # raise UserError(_("Generated XML:\n%s") % soap_envelope_rfid)
+
+        wsdl_url = "http://labelvantage.itl-group.com:8080/lv_web/services/CustomerOrdersService?wsdl"
+        # Create a session with HTTP basic authentication
+        session = Session()
+        session.auth = HTTPBasicAuth("brandixws", "brandixws01")
+        client = Client(wsdl_url, transport=Transport(session=session))
+
+        # request sending
+        response = client.service.createCustomerOrders(
+            system="test",
+            usercode="brandixws",
+            userpass="brandixws01",
+            xmlinput=pretty_xml_str_rfid,
+        )
+        wizard = self.env["rfid.response.wizard"].create({"response_content": response})
+        self._process_response(response)
+        return {
+            "type": "ir.actions.act_window",
+            "res_model": "rfid.response.wizard",
+            "view_mode": "form",
+            "view_id": self.env.ref("ITL_LBX_MS_V2.view_rfid_response_wizard_form").id,
+            "target": "new",
+            "res_id": wizard.id,
+        }
+
+    def _process_response(self, response):
+        # parsing the response
+        root = ET.fromstring(response)
+
+        # Iterate over each result
+        for result in root.findall("result"):
+            status = result.find("status").text
+            customer_order_no = result.find("customer_order_no").text
+
+            # Determine the new status
+            if status == "error":
+                new_status = "Open"
+            elif status == "success":
+                new_status = "Success"
+            else:
+                continue
+
+            # Update the status in Odoo
+            self._update_po_status(customer_order_no, new_status)
+
+    def _update_po_status(self, customer_order_no, new_status):
+        po_lines = self.env["get_po_mas_lines_price_tkt"].search(
+            [("POwithLine", "=", customer_order_no)]
+        )
+        if po_lines:
+            # Check if the current status is already 'Success'
+            current_status = po_lines.mapped("StatusField")
+            if "Success" in current_status:
+                # If any line already has a status of 'Success', do not update it
+                return
+            po_lines.write({"StatusField": new_status})
+        else:
+            raise UserError(f"PO with line {customer_order_no} not found.")
+
+    # ----------------------------------------------------------------------------------------------------------
+    # RFID - XML
+    # ----------------------------------------------------------------------------------------------------------
+    xml_content = fields.Binary("XML Content", readonly=True)
+
+    def action_check_prize(self):
+        customer_orders = {}
+        lines = self.env["get_po_mas_lines_price_tkt"].search(
+            [("header_table", "=", self.id)]
+        )
+
+        # for line in self.line_ids:
+        for line in lines:
+            if line.POwithLine not in customer_orders:
+                customer_orders[line.POwithLine] = {
+                    "details": {
+                        "itlcode": "3",
+                        "chainid": line.ChainID_id,
+                        "ocscustno": line.CustomerID,
+                        "delivery_address_id": line.AddressID,
+                        "delivery_contact": line.Customer_name,
+                        "delivery_method": "TRUCK",
+                        "delivery_account_no": "ITL",
+                    },
+                    "orders": {},
+                    # "sizes": [],
+                }
+
+            # existing_orders = [
+            #     order["product_ref"]
+            #     for order in customer_orders[line.POwithLine]["orders"]
+            # ]
+            # if line.ProductRef not in existing_orders:
+            if line.ProductRef not in customer_orders[line.POwithLine]["orders"]:
+                customer_orders[line.POwithLine]["orders"][line.ProductRef] = {
+                    "details": {
+                        "product_ref": line.ProductRef,
+                        "vs_po_number": line.po_number,
+                        "so_number": line.SoRefLv,
+                        "po_date": line.po_date,
+                        "line_item": line.purchase_order_item,
+                        "item_code": line.material_code,
+                        "vsd_style_6": "12345",
+                        "order_quantity": line.order_quantity,
+                        "season": line.season,
+                        "size_range": line.size_range,
+                        "country_of_origin": line.Coo,
+                    },
+                    "sizes": [],
+                }
+
+            customer_orders[line.POwithLine]["orders"][line.ProductRef]["sizes"].append(
+                {
+                    "size": line.size_lv if line.size_lv else line.grid_value,
+                    "size_id": line.size_id,
+                    "po_number": line.po_number,
+                    "style": line.customer_style,
+                    "colour_code": line.color_code_2,
+                    "sku": line.sku,
+                    "article_number": line.article_num,
+                    "delivery_date": line.delivery_date,
+                    "retail_price": line.retail_usd,
+                    "retail_price2": line.retail_cad,
+                    "retail_price3": line.retail_gbp,
+                    "size_quantity": line.size_quantity,
+                }
+            )
+        root = ET.Element("customerorders")
+
+        for POwithLine, order_data in customer_orders.items():
+            current_customer_order = ET.SubElement(root, "customerorder")
+
+            customer_order_no = ET.SubElement(
+                current_customer_order, "customer_order_no"
+            )
+            customer_order_no.text = POwithLine
+
+            details = order_data["details"]
+            for key, value in details.items():
+                detail_elem = ET.SubElement(current_customer_order, key.lower())
+                detail_elem.text = str(value)
+
+            worksorders_elem = ET.SubElement(current_customer_order, "worksorders")
+
+            for product_ref, order in order_data["orders"].items():
+                current_works_order = ET.SubElement(worksorders_elem, "worksorder")
+
+                product_ref_element = ET.SubElement(current_works_order, "product_ref")
+                product_ref_element.text = order["details"]["product_ref"]
+
+                vspo_element = ET.SubElement(current_works_order, "vs_po_number")
+                vspo_element.text = order["details"]["vs_po_number"]
+
+                so_no_elem1 = ET.SubElement(current_works_order, "so_number")
+                so_no_elem1.text = order["details"]["so_number"]
+
+                po_date_element = ET.SubElement(current_works_order, "po_date")
+                po_date_element.text = order["details"]["po_date"].strftime("%Y-%m-%d")
+
+                line_item_ele = ET.SubElement(current_works_order, "line_item")
+                line_item_ele.text = order["details"]["line_item"]
+
+                item_code_ele = ET.SubElement(current_works_order, "item_code")
+                item_code_ele.text = order["details"]["item_code"]
+
+                vsd_style_6_ele = ET.SubElement(current_works_order, "vsd_style_6")
+                vsd_style_6_ele.text = order["details"]["vsd_style_6"]  # check
+
+                order_quantity_ele = ET.SubElement(
+                    current_works_order, "order_quantity"
+                )
+                # order_quantity_ele.text = order["order_quantity"]
+                order_quantity_ele.text = str(order["details"]["order_quantity"])
+
+                season_ele = SubElement(current_works_order, "season")
+                season_ele.text = order["details"]["season"]
+
+                size_range_ele = SubElement(current_works_order, "size_range")
+                size_range_ele.text = order["details"]["size_range"]
+
+                country_of_origin_ele = SubElement(
+                    current_works_order, "country_of_origin"
+                )
+                country_of_origin_ele.text = order["details"]["country_of_origin"]
+
+                sizelines_elem = ET.SubElement(current_works_order, "sizelines")
+                for size_data in order["sizes"]:
+                    size_line_elem = ET.SubElement(sizelines_elem, "size_line")
+
+                    # size_column = "size_lv" if "size_lv" in size_data else "size"
+                    size_elem = ET.SubElement(size_line_elem, "size")
+                    size_elem.text = size_data["size"]  # check
+
+                    size_id_elem = ET.SubElement(size_line_elem, "size_id")
+                    size_id_elem.text = size_data["size_id"]
+
+                    po_no_elem = ET.SubElement(size_line_elem, "po_number")
+                    po_no_elem.text = size_data.get("po_number", "")
+
+                    style_no_elem = ET.SubElement(size_line_elem, "style")
+                    style_no_elem.text = size_data["style"]
+
+                    colour_code_elem = ET.SubElement(size_line_elem, "colour_code")
+                    colour_code_elem.text = size_data["colour_code"]
+
+                    sku_elem = ET.SubElement(size_line_elem, "sku")
+                    sku_elem.text = size_data["sku"]
+
+                    article_elem = ET.SubElement(size_line_elem, "article_number")
+                    article_elem.text = size_data["article_number"]
+
+                    if size_data["delivery_date"]:
+                        delivery_date = ET.SubElement(size_line_elem, "delivery_date")
+                        delivery_date.text = size_data["delivery_date"].strftime(
+                            "%Y-%m-%d"
+                        )
+
+                    retail_price_ele = ET.SubElement(size_line_elem, "retail_price")
+                    retail_price_ele.text = (
+                        "${:.2f}".format(float(size_data["retail_price"]))
+                        if size_data["retail_price"]
+                        else ""
+                    )
+
+                    retail_price2_ele = ET.SubElement(size_line_elem, "retail_price2")
+                    retail_price2_ele.text = (
+                        "${:.2f}".format(float(size_data["retail_price2"]))
+                        if size_data["retail_price2"]
+                        else ""
+                    )
+
+                    retail_price3_ele = ET.SubElement(size_line_elem, "retail_price3")
+                    retail_price3_ele.text = size_data["retail_price3"]
+
+                    sizeqty_elem = ET.SubElement(size_line_elem, "size_quantity")
+                    # sizeqty_elem.text = size_data["size_quantity"]
+                    sizeqty_elem.text = str(size_data["size_quantity"])
+
+        # xml_str = tostring(root, encoding="utf-8").decode("utf-8")
+        # raise UserError(_("Generated XML:\n%s") % xml_str)
+        xml_data = ET.tostring(root)
+        xml_str_rfid = xml_data.decode("utf-8")
+        dom = minidom.parseString(xml_str_rfid)
+        pretty_xml_str_rfid = dom.toprettyxml(indent="    ")
+
+        soap_envelope_rfid = (
+            "<?xml version='1.0' encoding='UTF-8'?>"
+            '<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">'
+            "<soap:Header/>"
+            "<soap:Body>"
+            '<ser:xmlinput xmlns:ser="http://services.web.labelvantage.com"/>'
+            '<ser:xmlinput xmlns:ser="http://services.web.labelvantage.com"/>'
+            '<ser:xmlinput xmlns:ser="http://services.web.labelvantage.com"/>'
+            '<ser:xmlinput xmlns:ser="http://services.web.labelvantage.com">'
+            "<![CDATA[" + pretty_xml_str_rfid + "]]>"
+            "</ser:xmlinput>"
+            "</soap:Body>"
+            "</soap:Envelope>"
+        )
+
+        raise UserError(_("Generated XML:\n%s") % soap_envelope_rfid)
+
+    # -----------------------------------------------------------------------------------------------------------
+    # Care Label - Post
     # -----------------------------------------------------------------------------------------------------------
 
-    # <----- Post ---->
     def action_post_care(self):
         lines = self.env["get_po_mas_lines_care_lable"].search(
             [("header_table", "=", self.id)]
@@ -3433,7 +3986,7 @@ class GetPo(models.Model):
                 f"        <delivery_contact>{Customer_name}</delivery_contact>\n"
             )
             xml_body += f"        <delivery_method>TRUCK</delivery_method>\n"
-            xml_body += f"        <delivery_account_no></delivery_account_no>\n"
+            xml_body += f"        <delivery_account_no>ITL</delivery_account_no>\n"
             xml_body += (
                 f"        <customer_confirmation_email></customer_confirmation_email>\n"
             )
@@ -3553,10 +4106,10 @@ class GetPo(models.Model):
                             [("id", "=", size_line.cid)], limit=1
                         )
                         if composition:
-                            xml_body += "                    <component>\n"
                             if composition.Component_1_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_1_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_1_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_1_fiber1_name}</fibre_name>\n"
@@ -3607,14 +4160,16 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_1_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_1_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_1_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
                             # except Exception as e:
                             # raise UserError(f"An error occurred: {str(e)}")
-                            xml_body += "                    <component>\n"
+                            # Component2
                             if composition.Component_2_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_2_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_2_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_2_fiber1_name}</fibre_name>\n"
@@ -3665,13 +4220,16 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_2_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_2_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_2_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
+
                             # component 3
-                            xml_body += "                    <component>\n"
+
                             if composition.Component_3_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_3_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_3_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_3_fiber1_name}</fibre_name>\n"
@@ -3722,13 +4280,15 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_3_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_3_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_3_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
+
                             # component 4
-                            xml_body += "                    <component>\n"
                             if composition.Component_4_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_4_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_4_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_4_fiber1_name}</fibre_name>\n"
@@ -3779,13 +4339,15 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_4_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_4_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_4_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
+
                             # component 5
-                            xml_body += "                    <component>\n"
                             if composition.Component_5_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_5_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_5_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_5_fiber1_name}</fibre_name>\n"
@@ -3836,13 +4398,15 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_5_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_5_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_5_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
                             # component 6
-                            xml_body += "                    <component>\n"
+
                             if composition.Component_6_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_6_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_6_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_6_fiber1_name}</fibre_name>\n"
@@ -3893,13 +4457,16 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_6_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_6_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_6_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
+
                             # component 7
-                            xml_body += "                    <component>\n"
+
                             if composition.Component_7_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_7_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_7_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_7_fiber1_name}</fibre_name>\n"
@@ -3950,13 +4517,16 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_7_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_7_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_7_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
+
                             # component 8
-                            xml_body += "                    <component>\n"
+
                             if composition.Component_8_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_8_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_8_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_8_fiber1_name}</fibre_name>\n"
@@ -4007,13 +4577,16 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_8_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_8_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_8_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
+
                             # component 9
-                            xml_body += "                    <component>\n"
+
                             if composition.Component_9_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_9_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_9_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_9_fiber1_name}</fibre_name>\n"
@@ -4064,13 +4637,15 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_9_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_9_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_9_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
                             # component 10
-                            xml_body += "                    <component>\n"
+
                             if composition.Component_10_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_10_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_10_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_10_fiber1_name}</fibre_name>\n"
@@ -4121,8 +4696,9 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_10_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_10_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_10_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
                 except Exception as e:
                     raise UserError(f"An error occurred: {str(e)}")
 
@@ -4163,32 +4739,41 @@ class GetPo(models.Model):
         session.auth = HTTPBasicAuth("brandixws", "brandixws01")
         client = Client(wsdl_url, transport=Transport(session=session))
         # Send the request and get the response
-        
-        response = client.service.createCustomerOrders(
-            system="test",
-            usercode="brandixws",
-            userpass="brandixws01",
-            xmlinput=xml_data,
-        )
-        wizard = self.env["rfid.response.wizard"].create(
-            {"response_content": response}
-        )
-        self._process_response(response)
-        return {
-            "type": "ir.actions.act_window",
-            "res_model": "rfid.response.wizard",
-            "view_mode": "form",
-            "view_id": self.env.ref("ITL_LBX_MS_V2.view_rfid_response_wizard_form").id,
-            "target": "new",
-            "res_id": wizard.id,
-        }
+        try:
+            response = client.service.createCustomerOrders(
+                system="live",
+                usercode="brandixws",
+                userpass="brandixws01",
+                xmlinput=xml_data,
+            )
+            # Create a wizard to display the response
+            wizard = self.env["rfid.response.wizard"].create(
+                {"response_content": response}
+            )
+            self._process_response(response)  # Call the response processing method
+
+            return {
+                "type": "ir.actions.act_window",
+                "res_model": "rfid.response.wizard",
+                "view_mode": "form",
+                "view_id": self.env.ref(
+                    "ITL_LBX_MS_V2.view_rfid_response_wizard_form"
+                ).id,
+                "target": "new",
+                "res_id": wizard.id,
+            }
+        except Exception as e:
+            raise UserError(f"An error occurred while sending the request:\n{str(e)}")
+
+            # raise UserError(f"Response from the service:\n{response}")
 
     def _process_response(self, response):
         root = ET.fromstring(response)
-        for result in root.findall("result"):
-            status = result.find("status").text
+        for result in root.findall(".//result"):
             customer_order_no = result.find("customer_order_no").text
+            status = result.find("status").text
 
+            # Determine the new status
             if status == "error":
                 new_status = "Open"
             elif status == "success":
@@ -4199,12 +4784,19 @@ class GetPo(models.Model):
             self._update_po_status(customer_order_no, new_status)
 
     def _update_po_status(self, customer_order_no, new_status):
-        po_lines = self.env["get_po_mas_lines_care_lable"].search([("POwithLine", "=", customer_order_no)])
-        if po_lines:
-            po_lines.write({"StatusField": new_status})
+        # Search for the corresponding PO line in the Odoo model
+        po_line = self.env["get_po_mas_lines_care_lable"].search(
+            [("POwithLine", "=", customer_order_no)]
+        )
+        if po_line:
+
+            current_status = po_line.mapped("StatusField")
+            if "Success" in current_status:
+                return
+            po_line.write({"StatusField": new_status})
+
         else:
             raise UserError(f"PO with line {customer_order_no} not found.")
-
 
     # <----- XML ---->
     def action_care_xml(self):
@@ -4430,10 +5022,11 @@ class GetPo(models.Model):
                             [("id", "=", size_line.cid)], limit=1
                         )
                         if composition:
-                            xml_body += "                    <component>\n"
+
                             if composition.Component_1_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_1_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_1_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_1_fiber1_name}</fibre_name>\n"
@@ -4484,12 +5077,14 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_1_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_1_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_1_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
                             # except Exception as e:
                             # raise UserError(f"An error occurred: {str(e)}")
-                            xml_body += "                    <component>\n"
+
                             if composition.Component_2_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_2_name}</component_name>\n"
                             xml_body += "                        <fibres>\n"
                             if composition.component_2_fiber1_name:
@@ -4542,13 +5137,15 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_2_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_2_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_2_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
                             # component 3
-                            xml_body += "                    <component>\n"
+
                             if composition.Component_3_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_3_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_3_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_3_fiber1_name}</fibre_name>\n"
@@ -4599,13 +5196,15 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_3_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_3_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_3_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
                             # component 4
-                            xml_body += "                    <component>\n"
+
                             if composition.Component_4_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_4_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_4_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_4_fiber1_name}</fibre_name>\n"
@@ -4656,13 +5255,15 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_4_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_4_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_4_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
                             # component 5
-                            xml_body += "                    <component>\n"
+
                             if composition.Component_5_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_5_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_5_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_5_fiber1_name}</fibre_name>\n"
@@ -4713,13 +5314,15 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_5_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_5_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_5_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
                             # component 6
-                            xml_body += "                    <component>\n"
+
                             if composition.Component_6_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_6_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_6_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_6_fiber1_name}</fibre_name>\n"
@@ -4770,13 +5373,15 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_6_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_6_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_6_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
                             # component 7
-                            xml_body += "                    <component>\n"
+
                             if composition.Component_7_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_7_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_7_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_7_fiber1_name}</fibre_name>\n"
@@ -4827,13 +5432,15 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_7_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_7_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_7_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
                             # component 8
-                            xml_body += "                    <component>\n"
+
                             if composition.Component_8_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_8_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_8_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_8_fiber1_name}</fibre_name>\n"
@@ -4884,13 +5491,15 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_8_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_8_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_8_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
                             # component 9
-                            xml_body += "                    <component>\n"
+
                             if composition.Component_9_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_9_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_9_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_9_fiber1_name}</fibre_name>\n"
@@ -4941,13 +5550,15 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_9_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_9_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_9_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
                             # component 10
-                            xml_body += "                    <component>\n"
+
                             if composition.Component_10_name:
+                                xml_body += "                    <component>\n"
                                 xml_body += f"                        <component_name>{composition.Component_10_name}</component_name>\n"
-                            xml_body += "                        <fibres>\n"
+                                xml_body += "                        <fibres>\n"
                             if composition.component_10_fiber1_name:
                                 xml_body += "                            <fibre>\n"
                                 xml_body += f"                                <fibre_name>{composition.component_10_fiber1_name}</fibre_name>\n"
@@ -4998,8 +5609,9 @@ class GetPo(models.Model):
                                 xml_body += f"                                <fibre_name>{composition.component_10_fiber10_name}</fibre_name>\n"
                                 xml_body += f"                                <fibre_percent>{composition.component_10_Fiber10_Percentage}</fibre_percent>\n"
                                 xml_body += "                            </fibre>\n"
-                            xml_body += "                        </fibres>\n"
-                            xml_body += "                    </component>\n"
+                            if composition.Component_10_name:
+                                xml_body += "                        </fibres>\n"
+                                xml_body += "                    </component>\n"
                 except Exception as e:
                     raise UserError(f"An error occurred: {str(e)}")
 
@@ -5035,461 +5647,3 @@ class GetPo(models.Model):
 
         # Raise UserError to display the XML
         raise UserError(xml_data)
-
-    # ----------------------------------------------------------------------------------------------------------
-    # Price tkt
-    # ----------------------------------------------------------------------------------------------------------
-    # <--- posting --->
-    xml_content = fields.Binary("XML Content", readonly=True)
-
-    def action_post_price_tkt(self):
-        lines = self.env["get_po_mas_lines_price_tkt"].search(
-            [("header_table", "=", self.id)]
-        )
-
-        if not lines:
-            raise UserError("No lines found for the given header.")
-        customer_orders = {}
-
-        for line in self.line_ids:
-            if line.POwithLine not in customer_orders:
-                customer_orders[line.POwithLine] = {
-                    "details": {
-                        "itlcode": "3",
-                        "chainid": line.ChainID_id,
-                        "ocscustno": line.CustomerID,
-                        "delivery_address_id": line.AddressID,
-                        "delivery_contact": line.Customer_name,
-                        "delivery_method": "TRUCK",
-                        "delivery_account_no": "ITL",
-                    },
-                    "orders": {},
-                    # "sizes": [],
-                }
-
-            # existing_orders = [
-            #     order["product_ref"]
-            #     for order in customer_orders[line.POwithLine]["orders"]
-            # ]
-            # if line.ProductRef not in existing_orders:
-            if line.ProductRef not in customer_orders[line.POwithLine]["orders"]:
-                customer_orders[line.POwithLine]["orders"][line.ProductRef] = {
-                    "details": {
-                        "product_ref": line.ProductRef,
-                        "vs_po_number": line.po_number,
-                        "so_number": line.SoRefLv,
-                        "po_date": line.po_date,
-                        "line_item": line.purchase_order_item,
-                        "item_code": line.material_code,
-                        "vsd_style_6": "12345",
-                        "order_quantity": line.order_quantity,  # need to change the field name
-                        "season": line.season,
-                        "size_range": line.size_range,
-                        "country_of_origin": line.Coo,
-                    },
-                    "sizes": [],
-                }
-
-            customer_orders[line.POwithLine]["orders"][line.ProductRef]["sizes"].append(
-                {
-                    "size": line.grid_value,
-                    "size_id": line.size_id,
-                    "po_number": line.po_number,
-                    "style": line.customer_style,
-                    "colour_code": line.color_code_2,
-                    "sku": line.sku,
-                    "article_number": line.article_num,
-                    "delivery_date": line.delivery_date,
-                    "retail_price": line.retail_usd,
-                    "retail_price2": line.retail_cad,
-                    "retail_price3": line.retail_gbp,
-                    "size_quantity": line.size_quantity,
-                }
-            )
-        root = ET.Element("customerorders")
-
-        for POwithLine, order_data in customer_orders.items():
-            current_customer_order = ET.SubElement(root, "customerorder")
-
-            customer_order_no = ET.SubElement(
-                current_customer_order, "customer_order_no"
-            )
-            customer_order_no.text = POwithLine
-
-            details = order_data["details"]
-            for key, value in details.items():
-                detail_elem = ET.SubElement(current_customer_order, key.lower())
-                detail_elem.text = str(value)
-
-            worksorders_elem = ET.SubElement(current_customer_order, "worksorders")
-
-            for product_ref, order in order_data["orders"].items():
-                current_works_order = ET.SubElement(worksorders_elem, "worksorder")
-
-                product_ref_element = ET.SubElement(current_works_order, "product_ref")
-                product_ref_element.text = order["details"]["product_ref"]
-
-                vspo_element = ET.SubElement(current_works_order, "vs_po_number")
-                vspo_element.text = order["details"]["vs_po_number"]
-
-                so_no_elem1 = ET.SubElement(current_works_order, "so_number")
-                so_no_elem1.text = order["details"]["so_number"]
-
-                po_date_element = ET.SubElement(current_works_order, "po_date")
-                po_date_element.text = order["details"]["po_date"].strftime("%Y-%m-%d")
-
-                line_item_ele = ET.SubElement(current_works_order, "line_item")
-                line_item_ele.text = order["details"]["line_item"]
-
-                item_code_ele = ET.SubElement(current_works_order, "item_code")
-                item_code_ele.text = order["details"]["item_code"]
-
-                vsd_style_6_ele = ET.SubElement(current_works_order, "vsd_style_6")
-                vsd_style_6_ele.text = order["details"]["vsd_style_6"]  # check
-
-                order_quantity_ele = ET.SubElement(
-                    current_works_order, "order_quantity"
-                )
-                # order_quantity_ele.text = order["order_quantity"]
-                order_quantity_ele.text = str(order["details"]["order_quantity"])
-
-                season_ele = SubElement(current_works_order, "season")
-                season_ele.text = order["details"]["season"]
-
-                size_range_ele = SubElement(current_works_order, "size_range")
-                size_range_ele.text = order["details"]["size_range"]
-
-                country_of_origin_ele = SubElement(
-                    current_works_order, "country_of_origin"
-                )
-                country_of_origin_ele.text = order["details"]["country_of_origin"]
-
-                sizelines_elem = ET.SubElement(current_works_order, "sizelines")
-                for size_data in order["sizes"]:
-                    size_line_elem = ET.SubElement(sizelines_elem, "size_line")
-
-                    size_column = "size_lv" if "size_lv" in size_data else "size"
-                    size_elem = ET.SubElement(size_line_elem, "size")
-                    size_elem.text = size_data[size_column]  # check
-
-                    size_id_elem = ET.SubElement(size_line_elem, "size_id")
-                    size_id_elem.text = size_data["size_id"]
-
-                    po_no_elem = ET.SubElement(size_line_elem, "po_number")
-                    po_no_elem.text = size_data.get("po_number", "")
-
-                    style_no_elem = ET.SubElement(size_line_elem, "style")
-                    style_no_elem.text = size_data["style"]
-
-                    colour_code_elem = ET.SubElement(size_line_elem, "colour_code")
-                    colour_code_elem.text = size_data["colour_code"]
-
-                    sku_elem = ET.SubElement(size_line_elem, "sku")
-                    sku_elem.text = size_data["sku"]
-
-                    article_elem = ET.SubElement(size_line_elem, "article_number")
-                    article_elem.text = size_data["article_number"]
-
-                    if size_data["delivery_date"]:
-                        delivery_date = ET.SubElement(size_line_elem, "delivery_date")
-                        delivery_date.text = size_data["delivery_date"].strftime(
-                            "%Y-%m-%d"
-                        )
-
-                    retail_price_ele = ET.SubElement(size_line_elem, "retail_price")
-                    retail_price_ele.text = (
-                        "${:.2f}".format(float(size_data["retail_price"]))
-                        if size_data["retail_price"]
-                        else ""
-                    )
-
-                    retail_price2_ele = ET.SubElement(size_line_elem, "retail_price2")
-                    retail_price2_ele.text = (
-                        "${:.2f}".format(float(size_data["retail_price2"]))
-                        if size_data["retail_price2"]
-                        else ""
-                    )
-
-                    retail_price3_ele = ET.SubElement(size_line_elem, "retail_price3")
-                    retail_price3_ele.text = size_data["retail_price3"]
-
-                    sizeqty_elem = ET.SubElement(size_line_elem, "size_quantity")
-                    # sizeqty_elem.text = size_data["size_quantity"]
-                    sizeqty_elem.text = str(size_data["size_quantity"])
-
-        # xml_str = tostring(root, encoding="utf-8").decode("utf-8")
-        # raise UserError(_("Generated XML:\n%s") % xml_str)
-        xml_data = ET.tostring(root)
-        xml_str_rfid = xml_data.decode("utf-8")
-        dom = minidom.parseString(xml_str_rfid)
-        pretty_xml_str_rfid = dom.toprettyxml(indent="    ")
-
-        soap_envelope_rfid = (
-            "<?xml version='1.0' encoding='UTF-8'?>"
-            '<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">'
-            "<soap:Header/>"
-            "<soap:Body>"
-            '<ser:xmlinput xmlns:ser="http://services.web.labelvantage.com"/>'
-            '<ser:xmlinput xmlns:ser="http://services.web.labelvantage.com"/>'
-            '<ser:xmlinput xmlns:ser="http://services.web.labelvantage.com"/>'
-            '<ser:xmlinput xmlns:ser="http://services.web.labelvantage.com">'
-            "<![CDATA[" + pretty_xml_str_rfid + "]]>"
-            "</ser:xmlinput>"
-            "</soap:Body>"
-            "</soap:Envelope>"
-        )
-
-        # raise UserError(_("Generated XML:\n%s") % soap_envelope_rfid)
-
-        wsdl_url = "http://labelvantage.itl-group.com:8080/lv_web/services/CustomerOrdersService?wsdl"
-        # Create a session with HTTP basic authentication
-        session = Session()
-        session.auth = HTTPBasicAuth("brandixws", "brandixws01")
-        client = Client(wsdl_url, transport=Transport(session=session))
-
-        # request sending
-        response = client.service.createCustomerOrders(
-            system="test",
-            usercode="brandixws",
-            userpass="brandixws01",
-            xmlinput=pretty_xml_str_rfid,
-        )
-
-        wizard = self.env["rfid.response.wizard"].create(
-            {"response_content": response}
-        )
-        self._process_response(response)
-        return {
-            "type": "ir.actions.act_window",
-            "res_model": "rfid.response.wizard",
-            "view_mode": "form",
-            "view_id": self.env.ref("ITL_LBX_MS_V2.view_rfid_response_wizard_form").id,
-            "target": "new",
-            "res_id": wizard.id,
-        }
-
-    def _process_response(self, response):
-        root = ET.fromstring(response)
-        for result in root.findall("result"):
-            status = result.find("status").text
-            customer_order_no = result.find("customer_order_no").text
-
-            if status == "error":
-                new_status = "Open"
-            elif status == "success":
-                new_status = "Success"
-            else:
-                continue
-
-            self._update_po_status(customer_order_no, new_status)
-
-    def _update_po_status(self, customer_order_no, new_status):
-        po_lines = self.env["get_po_mas_lines_price_tkt"].search([("POwithLine", "=", customer_order_no)])
-        if po_lines:
-            po_lines.write({"StatusField": new_status})
-        else:
-            raise UserError(f"PO with line {customer_order_no} not found.")
-
-
-    #    <---  XML  --->
-    xml_content = fields.Binary("XML Content", readonly=True)
-
-    def action_check_price_tkt(self):
-        lines = self.env["get_po_mas_lines_price_tkt"].search(
-            [("header_table", "=", self.id)]
-        )
-
-        if not lines:
-            raise UserError("No lines found for the given header.")
-            
-        customer_orders = {}
-
-        for line in self.line_ids:
-            if line.POwithLine not in customer_orders:
-                customer_orders[line.POwithLine] = {
-                    "details": {
-                        "itlcode": "3",
-                        "chainid": line.ChainID_id,
-                        "ocscustno": line.CustomerID,
-                        "delivery_address_id": line.AddressID,
-                        "delivery_contact": line.Customer_name,
-                        "delivery_method": "TRUCK",
-                        "delivery_account_no": "ITL",
-                    },
-                    "orders": {},
-                    # "sizes": [],
-                }
-
-            # existing_orders = [
-            #     order["product_ref"]
-            #     for order in customer_orders[line.POwithLine]["orders"]
-            # ]
-            # if line.ProductRef not in existing_orders:
-            if line.ProductRef not in customer_orders[line.POwithLine]["orders"]:
-                customer_orders[line.POwithLine]["orders"][line.ProductRef] = {
-                    "details": {
-                        "product_ref": line.ProductRef,
-                        "vs_po_number": line.po_number,
-                        "so_number": line.SoRefLv,
-                        "po_date": line.po_date,
-                        "line_item": line.purchase_order_item,
-                        "item_code": line.material_code,
-                        "vsd_style_6": "12345",
-                        "order_quantity": line.order_quantity,
-                        "season": line.season,
-                        "size_range": line.size_range,
-                        "country_of_origin": line.Coo,
-                    },
-                    "sizes": [],
-                }
-
-            customer_orders[line.POwithLine]["orders"][line.ProductRef]["sizes"].append(
-                {
-                    "size": line.grid_value,
-                    "size_id": line.size_id,
-                    "po_number": line.po_number,
-                    "style": line.customer_style,
-                    "colour_code": line.color_code_2,
-                    "sku": line.sku,
-                    "article_number": line.article_num,
-                    "delivery_date": line.delivery_date,
-                    "retail_price": line.retail_usd,
-                    "retail_price2": line.retail_cad,
-                    "retail_price3": line.retail_gbp,
-                    "size_quantity": line.size_quantity,
-                }
-            )
-        root = ET.Element("customerorders")
-
-        for POwithLine, order_data in customer_orders.items():
-            current_customer_order = ET.SubElement(root, "customerorder")
-
-            customer_order_no = ET.SubElement(
-                current_customer_order, "customer_order_no"
-            )
-            customer_order_no.text = POwithLine
-
-            details = order_data["details"]
-            for key, value in details.items():
-                detail_elem = ET.SubElement(current_customer_order, key.lower())
-                detail_elem.text = str(value)
-
-            worksorders_elem = ET.SubElement(current_customer_order, "worksorders")
-
-            for product_ref, order in order_data["orders"].items():
-                current_works_order = ET.SubElement(worksorders_elem, "worksorder")
-
-                product_ref_element = ET.SubElement(current_works_order, "product_ref")
-                product_ref_element.text = order["details"]["product_ref"]
-
-                vspo_element = ET.SubElement(current_works_order, "vs_po_number")
-                vspo_element.text = order["details"]["vs_po_number"]
-
-                so_no_elem1 = ET.SubElement(current_works_order, "so_number")
-                so_no_elem1.text = order["details"]["so_number"]
-
-                po_date_element = ET.SubElement(current_works_order, "po_date")
-                po_date_element.text = order["details"]["po_date"].strftime("%Y-%m-%d")
-
-                line_item_ele = ET.SubElement(current_works_order, "line_item")
-                line_item_ele.text = order["details"]["line_item"]
-
-                item_code_ele = ET.SubElement(current_works_order, "item_code")
-                item_code_ele.text = order["details"]["item_code"]
-
-                vsd_style_6_ele = ET.SubElement(current_works_order, "vsd_style_6")
-                vsd_style_6_ele.text = order["details"]["vsd_style_6"]  # check
-
-                order_quantity_ele = ET.SubElement(
-                    current_works_order, "order_quantity"
-                )
-                # order_quantity_ele.text = order["order_quantity"]
-                order_quantity_ele.text = str(order["details"]["order_quantity"])
-
-                season_ele = SubElement(current_works_order, "season")
-                season_ele.text = order["details"]["season"]
-
-                size_range_ele = SubElement(current_works_order, "size_range")
-                size_range_ele.text = order["details"]["size_range"]
-
-                country_of_origin_ele = SubElement(
-                    current_works_order, "country_of_origin"
-                )
-                country_of_origin_ele.text = order["details"]["country_of_origin"]
-
-                sizelines_elem = ET.SubElement(current_works_order, "sizelines")
-                for size_data in order["sizes"]:
-                    size_line_elem = ET.SubElement(sizelines_elem, "size_line")
-
-                    size_column = "size_lv" if "size_lv" in size_data else "size"
-                    size_elem = ET.SubElement(size_line_elem, "size")
-                    size_elem.text = size_data[size_column]
-
-                    size_id_elem = ET.SubElement(size_line_elem, "size_id")
-                    size_id_elem.text = size_data["size_id"]
-
-                    po_no_elem = ET.SubElement(size_line_elem, "po_number")
-                    po_no_elem.text = size_data.get("po_number", "")
-
-                    style_no_elem = ET.SubElement(size_line_elem, "style")
-                    style_no_elem.text = size_data["style"]
-
-                    colour_code_elem = ET.SubElement(size_line_elem, "colour_code")
-                    colour_code_elem.text = size_data["colour_code"]
-
-                    sku_elem = ET.SubElement(size_line_elem, "sku")
-                    sku_elem.text = size_data["sku"]
-
-                    article_elem = ET.SubElement(size_line_elem, "article_number")
-                    article_elem.text = size_data["article_number"]
-
-                    if size_data["delivery_date"]:
-                        delivery_date = ET.SubElement(size_line_elem, "delivery_date")
-                        delivery_date.text = size_data["delivery_date"].strftime(
-                            "%Y-%m-%d"
-                        )
-
-                    retail_price_ele = ET.SubElement(size_line_elem, "retail_price")
-                    retail_price_ele.text = (
-                        "${:.2f}".format(float(size_data["retail_price"]))
-                        if size_data["retail_price"]
-                        else ""
-                    )
-
-                    retail_price2_ele = ET.SubElement(size_line_elem, "retail_price2")
-                    retail_price2_ele.text = (
-                        "${:.2f}".format(float(size_data["retail_price2"]))
-                        if size_data["retail_price2"]
-                        else ""
-                    )
-
-                    retail_price3_ele = ET.SubElement(size_line_elem, "retail_price3")
-                    retail_price3_ele.text = size_data["retail_price3"]
-
-                    sizeqty_elem = ET.SubElement(size_line_elem, "size_quantity")
-                    # sizeqty_elem.text = size_data["size_quantity"]
-                    sizeqty_elem.text = str(size_data["size_quantity"])
-
-        # xml_str = tostring(root, encoding="utf-8").decode("utf-8")
-        # raise UserError(_("Generated XML:\n%s") % xml_str)
-        xml_data = ET.tostring(root)
-        xml_str_rfid = xml_data.decode("utf-8")
-        dom = minidom.parseString(xml_str_rfid)
-        pretty_xml_str_rfid = dom.toprettyxml(indent="    ")
-
-        soap_envelope_rfid = (
-            "<?xml version='1.0' encoding='UTF-8'?>"
-            '<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">'
-            "<soap:Header/>"
-            "<soap:Body>"
-            '<ser:xmlinput xmlns:ser="http://services.web.labelvantage.com"/>'
-            '<ser:xmlinput xmlns:ser="http://services.web.labelvantage.com"/>'
-            '<ser:xmlinput xmlns:ser="http://services.web.labelvantage.com"/>'
-            '<ser:xmlinput xmlns:ser="http://services.web.labelvantage.com">'
-            "<![CDATA[" + pretty_xml_str_rfid + "]]>"
-            "</ser:xmlinput>"
-            "</soap:Body>"
-            "</soap:Envelope>"
-        )
-
-        raise UserError(_("Generated XML:\n%s") % soap_envelope_rfid)

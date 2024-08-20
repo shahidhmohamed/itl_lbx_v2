@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates>
+    <t t-name="owl.UserDetailsPercentage" owl="1">
+        <div class="col-lg-4 text-center">
+            <div class="radial-progress" style="width: 80px; height: 60px;">                <!-- Adjust the size here -->
+                <svg class="radial-progress-svg" viewBox="0 0 100 100" style="width: 80px; height: 60px;">                    <!-- Adjust the SVG size -->
+                    <circle class="radial-progress-bg" cx="50" cy="50" r="30"></circle>                    <!-- Reduced radius -->
+                    <circle class="radial-progress-bar" cx="50" cy="50" r="30" stroke-dasharray="125.6" t-att-stroke-dashoffset="(125.6 - (125.6 * Math.round(props.percentage) / 100))" t-att-class="'po-progress-bar-' + props.label.toLowerCase()"></circle>                    <!-- Updated stroke-dasharray -->
+                </svg>
+                <div class="flex">
+                    <div class="radial-progress-text" style="font-size: 10px;">                        <!-- Reduced text size -->
+                        <span t-esc="Math.round(props.percentage)"/>
+%
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

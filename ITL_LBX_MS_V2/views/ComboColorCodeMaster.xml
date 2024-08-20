@@ -1,0 +1,25 @@
+<odoo>
+    <record id="action_combo_color_code_master" model="ir.actions.act_window">
+        <field name="name">Combo Color Code Master</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">combo_color_code_master</field>
+        <field name="view_mode">tree</field>
+    </record>
+
+
+    <!-- Start of Tree View -->
+    <record id = "combo_color_code_master_01_tree" model = "ir.ui.view">
+        <field name = "name">Combo Color Code Master</field>
+        <field name = "model">combo_color_code_master</field>
+        <field name = "arch" type = "xml">
+            <tree editable="bottom">
+                <field name = "combo_color_code"/>
+                <field name = "combo_color_code_name"/>
+            </tree>
+        </field>
+    </record>
+    <!-- End of Tree View -->
+
+    <menuitem id="combo_color_code_master_master" name="Combo Color Code Master" parent ="others" action = "action_combo_color_code_master" sequence="130" />
+
+</odoo>

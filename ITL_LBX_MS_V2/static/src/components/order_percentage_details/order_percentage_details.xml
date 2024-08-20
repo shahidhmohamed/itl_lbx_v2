@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates>
+    <t t-name="owl.Percentage" owl="1">
+        <div class="col-lg-4 m-2 p-4 text-center">
+            <div class="radial-progress">
+                <svg class="radial-progress-svg" viewBox="0 0 100 100">
+                    <circle class="radial-progress-bg" cx="50" cy="50" r="45"></circle>
+                    <circle class="radial-progress-bar" cx="50" cy="50" r="45" stroke-dasharray="283" t-att-stroke-dashoffset="(283 - (283 * Math.round(props.percentage) / 100))" t-att-class="'radial-progress-bar-' + props.label.toLowerCase()"></circle>
+                </svg>
+                <div class="flex">
+                    <div class="radial-progress-text">
+                        <span t-esc="Math.round(props.percentage)"/>
+%
+                    </div>
+                    <div class="radial-progress-label">
+                        <span t-esc="props.label"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

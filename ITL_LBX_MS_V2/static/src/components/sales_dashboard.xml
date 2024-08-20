@@ -24,16 +24,16 @@
                         <div class="col-lg-6 m-0 p-0">
                             <div class="shadow-sm border m-2 p-4 bg-white order-chart">
                                 <div class="d-flex align-items-center justify-content-between">
-                                    <h3 class="text-primary fw-bold">Order Status</h3>
+                                    <h3 class="text-info fw-bold">Order Status</h3>
                                     <div class="d-flex align-items-center">
                                         <t t-if="state.chartType === 'pie'">
                                             <div class="px-3 py-1 cursor-pointer" t-on-click="showChart.bind(this, 'doughnut')">
-                                                <span class="fa fa-area-chart text-primary fa-3x"/>
+                                                <span class="fa fa-area-chart text-info fa-3x"/>
                                             </div>
                                         </t>
                                         <t t-if="state.chartType === 'doughnut'">
                                             <div class="px-3 py-1 cursor-pointer" t-on-click="showChart.bind(this, 'pie')">
-                                                <span class="fa fa-pie-chart text-primary fa-3x"/>
+                                                <span class="fa fa-pie-chart text-info fa-3x"/>
                                             </div>
                                         </t>
                                     </div>
@@ -49,11 +49,14 @@
                             </div>
                         </div>
                         <div class="col-lg-6 m-0 p-4">
-                            <div class="row">
-                                <RadialProgressBar/>
-                                <RadialProgressBar/>
-                                <RadialProgressBar/>
-                                <RadialProgressBar/>
+                            <div class="row percentage_container">
+                                <Percentage percentage="purchase_order_count.done_percentage" label="'DONE'"/>
+                                <Percentage percentage="purchase_order_count.cancelled_percentage" label="'CANCELLED'"/>
+                                <Percentage percentage="purchase_order_count.open_percentage" label="'OPEN'"/>
+                                <!-- <RadialProgressBar percentage="purchase_order_count.done_percentage" label="'Done'" color="'#4CAF50'"/> -->
+                                <!-- <RadialProgressBar percentage="purchase_order_count.cancelled_percentage" label="'Cancelled'" color="'#FF5252'"/>
+                                <RadialProgressBar percentage="purchase_order_count.open_percentage" label="'Open'" color="'#FFC107'"/>
+                                <RadialProgressBar percentage="purchase_order_count.open_percentage" label="'Open'" color="'#FFC107'"/> -->
                             </div>
                         </div>
                     </div>
@@ -61,34 +64,42 @@
 
 
                 <div class="col-lg-6">
+                    <div class="col m-0 p-0" style="display: flex; gap: 8px;">                        <!-- Added gap between elements -->
+                        <UserDetails img="purchase_order_count.current_user_img" data="purchase_order_count.current_user"/>
+                        <UserDetailsPercentage percentage="purchase_order_count.rfid_percentage" label="'RFID'"/>
+                    </div>
                     <div class="row po-card-container">
                         <PoCard done="purchase_order_count.rfid_count" label="'RFID'"/>
-                        <PoCard done="purchase_order_count.main_lable_count" label="'MAIN LABEL'"/>
+                        <PoCard done="purchase_order_count.main_label_count" label="'MAIN LABEL'"/>
                         <PoCard done="purchase_order_count.care_labels_count" label="'CARE LABEL'"/>
                         <PoCard done="purchase_order_count.price_tkt_count" label="'PRICE TKT'"/>
                     </div>
                     <div class="row">
-                        <div class="col-lg-6 m-0 p-4">
-                            <div class="row">
+                        <div class="col-lg-6 p-4">
+                            <div class="row po_percentage_row">
+                                <PoPercentage percentage="purchase_order_count.rfid_percentage" label="'RFID'"/>
+                                <PoPercentage percentage="purchase_order_count.main_percentage" label="'MAIN'"/>
+                                <PoPercentage percentage="purchase_order_count.care_percentage" label="'CARE'"/>
+                                <PoPercentage percentage="purchase_order_count.price_tkt_percentage" label="'PRICE'"/>
+                                <!-- <RadialProgressBar/>
                                 <RadialProgressBar/>
                                 <RadialProgressBar/>
-                                <RadialProgressBar/>
-                                <RadialProgressBar/>
+                                <RadialProgressBar/> -->
                             </div>
                         </div>
                         <div class="col-lg-6 m-0 p-0">
                             <div class="shadow-sm border m-2 p-4 bg-white order-chart">
                                 <div class="d-flex align-items-center justify-content-between">
-                                    <h3 class="text-primary fw-bold">Purchase Order Types</h3>
+                                    <h3 class="text-info fw-bold">Purchase Order Types</h3>
                                     <div class="d-flex align-items-center">
                                         <t t-if="state_2.chartType === 'pie'">
                                             <div class="px-3 py-1 cursor-pointer" t-on-click="showChart_2.bind(this, 'doughnut')">
-                                                <span class="fa fa-area-chart text-primary fa-3x"/>
+                                                <span class="fa fa-area-chart text-info fa-3x"/>
                                             </div>
                                         </t>
                                         <t t-if="state_2.chartType === 'doughnut'">
                                             <div class="px-3 py-1 cursor-pointer" t-on-click="showChart_2.bind(this, 'pie')">
-                                                <span class="fa fa-pie-chart text-primary fa-3x"/>
+                                                <span class="fa fa-pie-chart text-info fa-3x"/>
                                             </div>
                                         </t>
                                     </div>
